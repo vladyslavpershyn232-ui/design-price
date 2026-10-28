@@ -167,6 +167,48 @@
     return 0.7;
   }
 
+  /* Окремі носії — те, що графічний дизайнер робить поштучно, поза брендингом.
+     Ціни з українських бірж і прайсів, жовтень 2026. */
+  var SINGLES = [
+    { id: 'post', label: 'Пост для соцмереж', note: 'один пост або карусель', price: 350,
+      countLabel: 'постів', defaultCount: 9, min: 1, bulk: true },
+    { id: 'story', label: 'Сторіз', note: 'вертикальний макет під відео чи статику', price: 300,
+      countLabel: 'сторіз', defaultCount: 5, min: 1, bulk: true },
+    { id: 'highlight', label: 'Іконки та обкладинки актуального', note: 'набір для профілю', price: 150,
+      countLabel: 'іконок', defaultCount: 6, min: 1, bulk: true },
+    { id: 'banner', label: 'Банер', note: 'веб, реклама, креатив під таргет', price: 400,
+      countLabel: 'банерів', defaultCount: 3, min: 1, bulk: true },
+    { id: 'card', label: 'Візитівка', note: 'окремо, не в складі айдентики', price: 1200,
+      countLabel: 'варіантів', defaultCount: 1, min: 1, bulk: true },
+    { id: 'sticker', label: 'Стікери', note: 'набір, від п’яти штук', price: 400,
+      countLabel: 'штук', defaultCount: 5, min: 5, bulk: true },
+    { id: 'poster', label: 'Постер або афіша', note: 'авторська композиція під друк', price: 2500,
+      countLabel: 'штук', defaultCount: 1, min: 1, bulk: true },
+    { id: 'flyer', label: 'Флаєр, листівка', note: 'дві сторони', price: 1000,
+      countLabel: 'штук', defaultCount: 1, min: 1, bulk: true },
+    { id: 'menu', label: 'Меню', note: 'для закладу, одна сторінка або розворот', price: 2000,
+      countLabel: 'штук', defaultCount: 1, min: 1, bulk: true },
+    { id: 'merch', label: 'Мерч', note: 'принт на футболку, тоут, кепку', price: 1500,
+      countLabel: 'принтів', defaultCount: 1, min: 1, bulk: true },
+    { id: 'signboard', label: 'Вивіска', note: 'макет під виробництво', price: 2000,
+      countLabel: 'штук', defaultCount: 1, min: 1, bulk: true },
+    { id: 'cover', label: 'Обкладинка', note: 'книга, альбом, зошит', price: 3000,
+      countLabel: 'штук', defaultCount: 1, min: 1, bulk: true },
+    { id: 'certificate', label: 'Сертифікат, грамота', note: 'бланк під друк', price: 1000,
+      countLabel: 'штук', defaultCount: 1, min: 1, bulk: true },
+    { id: 'pricelist', label: 'Прайс-лист', note: 'одна сторінка', price: 500,
+      countLabel: 'сторінок', defaultCount: 1, min: 1, bulk: true }
+  ];
+
+  /* Тираж однотипних макетів дешевшає: перший дорожчий за десятий. */
+  function bulkFactor(n) {
+    if (n <= 2) return 1;
+    if (n <= 5) return 0.9;
+    if (n <= 12) return 0.8;
+    if (n <= 30) return 0.7;
+    return 0.6;
+  }
+
   /* Друга і наступні упаковки в одній лінійці дешевші за першу. */
   var EXTRA_SKU_FACTOR = 0.55;
 
@@ -187,7 +229,8 @@
 
   global.PRICING = {
     BASE: BASE, LEVELS: LEVELS, QUESTIONS: QUESTIONS, THRESHOLDS: THRESHOLDS,
-    MODIFIERS: MODIFIERS, WORKS: WORKS, pageFactor: pageFactor,
+    MODIFIERS: MODIFIERS, WORKS: WORKS, SINGLES: SINGLES,
+    pageFactor: pageFactor, bulkFactor: bulkFactor,
     EXTRA_SKU_FACTOR: EXTRA_SKU_FACTOR, SPREAD: SPREAD,
     FALLBACK_RATE: 45.59,        // курс на 29.10.2026, якщо НБУ не відповість
     FALLBACK_RATE_DATE: '29.10.2026'

@@ -21,8 +21,8 @@
   /* ---------- состояние ---------- */
 
   var answers = {};                  // номер вопроса → индекс ответа
-  var level = null;                  // выбранный уровень
-  var levelFromQuiz = null;          // что показал опросник
+  var level = localStorage.getItem('calc_level') || null;        // выбранный уровень
+  var levelFromQuiz = localStorage.getItem('calc_level_quiz') || null; // что показал опросник
   var step = 'quiz';                 // quiz | calc
   var rate = P.FALLBACK_RATE;
   var rateDate = P.FALLBACK_RATE_DATE;
@@ -31,6 +31,10 @@
   var work = {};
   P.WORKS.forEach(function (w, i) {
     work[w.id] = { on: i === 0, count: w.defaultCount || 1 };
+  });
+  var singles = {};
+  P.SINGLES.forEach(function (w) {
+    singles[w.id] = { on: false, count: w.defaultCount || 1 };
   });
   var mods = {};
   P.MODIFIERS.forEach(function (m) { mods[m.id] = 0; });
@@ -140,6 +144,17 @@
       });
     }
 
+    P.SINGLES.forEach(function (w) {
+      var st = singles[w.id];
+      if (!st.on || st.count < 1) return;
+      var bf = P.bulkFactor(st.count);
+      items.push({
+        label: w.label + ' × ' + st.count +
+          (bf < 1 ? ' (за тираж −' + Math.round((1 - bf) * 100) + '%)' : ''),
+        value: w.price * st.count * bf * factor
+      });
+    });
+
     var base = items.reduce(function (s, x) { return s + x.value; }, 0);
 
     var modFactor = 1;
@@ -179,7 +194,41 @@
         '<div class="about">' + esc(l.about) + '</div></button>';
     }).join('');
     Array.prototype.forEach.call(document.querySelectorAll('[data-level]'), function (el) {
-      el.onclick = function () { level = el.dataset.level; renderCalc(); };
+      el.onclick = function () {
+        level = el.dataset.level;
+        localStorage.setItem('calc_level', level);
+        renderCalc();
+      };
+    });
+  }
+
+  /* Один и тот же вид строки для комплексных работ и для отдельных носителей. */
+  function workRow(r, state, unitPrice, attr) {
+    var price = money(roundNice(unitPrice)) + ' ₴' + (r.per ? ' ' + r.per : '');
+    var body = r.countLabel
+      ? '<div class="workbody' + (state.on ? '' : ' off') + '">' +
+        '<label class="num">' + esc(r.countLabel) + ' <input type="number" min="' + (r.min || 1) +
+        '" max="500" value="' + state.count + '" data-' + attr + 'count="' + r.id + '"></label></div>'
+      : '';
+    return '<div class="work"><div class="workhead">' +
+      '<input type="checkbox" id="' + attr + '-' + r.id + '"' + (state.on ? ' checked' : '') +
+      ' data-' + attr + '="' + r.id + '">' +
+      '<label for="' + attr + '-' + r.id + '">' + esc(r.label) +
+      '<div class="hint">' + esc(r.note) + '</div></label>' +
+      '<span class="workprice">' + esc(price) + '</span></div>' + body + '</div>';
+  }
+
+  function bindRows(attr, store, onCount) {
+    Array.prototype.forEach.call(document.querySelectorAll('[data-' + attr + ']'), function (el) {
+      el.onchange = function () { store[el.dataset[attr]].on = el.checked; renderCalc(); };
+    });
+    Array.prototype.forEach.call(document.querySelectorAll('[data-' + attr + 'count]'), function (el) {
+      el.oninput = function () {
+        var min = Number(el.min) || 1;
+        var v = Math.max(min, Math.min(500, Number(el.value) || min));
+        store[el.dataset[attr + 'count']].count = v;
+        renderTotal();
+      };
     });
   }
 
@@ -187,31 +236,18 @@
     var factor = levelData(level).factor;
 
     $('works').innerHTML = P.WORKS.map(function (r) {
-      var w = work[r.id];
-      var unit = P.BASE[r.base] * factor;
-      var price = money(roundNice(unit)) + ' ₴' + (r.per ? ' ' + r.per : '');
-      var body = r.countLabel
-        ? '<div class="workbody' + (w.on ? '' : ' off') + '">' +
-          '<label class="num">' + esc(r.countLabel) + ' <input type="number" min="1" max="500" value="' +
-          w.count + '" data-count="' + r.id + '"></label></div>'
-        : '';
-      return '<div class="work"><div class="workhead">' +
-        '<input type="checkbox" id="w-' + r.id + '"' + (w.on ? ' checked' : '') + ' data-work="' + r.id + '">' +
-        '<label for="w-' + r.id + '">' + esc(r.label) +
-        '<div class="hint">' + esc(r.note) + '</div></label>' +
-        '<span class="workprice">' + esc(price) + '</span></div>' + body + '</div>';
+      return workRow(r, work[r.id], P.BASE[r.base] * factor, 'work');
     }).join('');
 
-    Array.prototype.forEach.call(document.querySelectorAll('[data-work]'), function (el) {
-      el.onchange = function () { work[el.dataset.work].on = el.checked; renderCalc(); };
-    });
-    Array.prototype.forEach.call(document.querySelectorAll('[data-count]'), function (el) {
-      el.oninput = function () {
-        var v = Math.max(1, Math.min(500, Number(el.value) || 1));
-        work[el.dataset.count].count = v;
-        renderTotal();
-      };
-    });
+    $('singles').innerHTML = P.SINGLES.map(function (r) {
+      return workRow({
+        id: r.id, label: r.label, note: r.note, countLabel: r.countLabel,
+        min: r.min, per: 'за штуку'
+      }, singles[r.id], r.price * factor, 'single');
+    }).join('');
+
+    bindRows('work', work);
+    bindRows('single', singles);
   }
 
   function renderMods() {
@@ -303,16 +339,28 @@
       var res = computeLevel();
       levelFromQuiz = scoreToLevel(res.ratio);
       level = levelFromQuiz;
+      localStorage.setItem('calc_level', level);
+      localStorage.setItem('calc_level_quiz', levelFromQuiz);
       renderCalc();
       show('calc');
     };
     $('skipQuiz').onclick = function () {
-      levelFromQuiz = null;
       level = level || 'middle';
+      localStorage.setItem('calc_level', level);
       renderCalc();
       show('calc');
     };
-    $('backToQuiz').onclick = function () { show('quiz'); };
+    $('backToQuiz').onclick = function () {
+      answers = {};
+      renderQuiz();
+      show('quiz');
+    };
+
+    // Уровень запоминается: второй раз опитувальник проходить не нужно.
+    if (level) {
+      renderCalc();
+      show('calc');
+    }
 
     $('sourcesBody').innerHTML = SOURCES_HTML;
 
@@ -335,6 +383,15 @@
     '<tr><td>Шпальта багатосторінківки: 800 ₴</td><td>WeLoveBrands, презентації</td></tr>' +
     '<tr><td>Упаковка: 5 000 ₴ за позицію</td><td>Freelancehunt: від 700 до 8 000 ₴</td></tr>' +
     '<tr><td>Рівні: ×0,5 · ×1 · ×1,7</td><td>ITStep: дохід 15–25 / 30–50 / 50–70+ тис. ₴</td></tr>' +
+    '</table>' +
+    '<p style="margin-top:14px">Окремі носії, ціни для мідла:</p>' +
+    '<table>' +
+    '<tr><td>Пост для соцмереж: 350 ₴</td><td>Kabanchik 150–400 ₴, Freelancehunt 350 ₴ за пост</td></tr>' +
+    '<tr><td>Сторіз: 300 ₴</td><td>vizitka.com 350 ₴ за сторіз, стрічка з 9 шт — 1 600 ₴</td></tr>' +
+    '<tr><td>Іконки актуального: 150 ₴</td><td>vizitka.com: 6 хайлайтів — 720 ₴; АйФіш: від 50 ₴</td></tr>' +
+    '<tr><td>Банер: 400 ₴</td><td>romi.com.ua 250 ₴, freelance.ua 200–500 ₴</td></tr>' +
+    '<tr><td>Прайс-лист: 500 ₴</td><td>прайс дизайнерки в Instagram: 500 ₴, наступна 200 ₴</td></tr>' +
+    '<tr><td>Решта носіїв</td><td>оцінка за складністю відносно цих позицій — потребує перевірки</td></tr>' +
     '</table>' +
     '<p style="margin-top:12px">Курс гривні до долара підтягується з сайту Національного банку.</p>';
 
