@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="uk" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Скільки коштує дизайн</title>
+<meta name="description" content="Опитувальник на рівень і розрахунок вартості дизайну за українським фриланс-ринком.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='85'>₴</text></svg>">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div class="headrow">
+      <div>
+        <h1>Скільки коштує дизайн</h1>
+        <p class="lead">Спочатку короткий опитувальник — він визначить рівень. Потім розрахунок: що саме робите і в яких умовах. Ціни — за українським фриланс-ринком.</p>
+      </div>
+      <button type="button" class="iconbtn" id="theme" aria-label="Тема">☾</button>
+    </div>
+  </header>
+
+  <div class="steps">
+    <span class="step on" id="step1">1 · Рівень</span>
+    <span class="step" id="step2">2 · Розрахунок</span>
+  </div>
+
+  <section id="screen-quiz">
+    <div class="card">
+      <h2>Опитувальник</h2>
+      <p class="sub">Десять питань. Відповідайте як є — завищений рівень дасть ціну, яку не вийде захистити перед клієнтом.</p>
+      <div id="quiz"></div>
+      <div class="row">
+        <button type="button" class="btn primary" id="toCalc" disabled>Дізнатися рівень</button>
+        <button type="button" class="btn" id="skipQuiz">Пропустити, рівень знаю</button>
+        <span class="hint" id="quizcount"></span>
+      </div>
+    </div>
+  </section>
+
+  <section id="screen-calc" class="hidden">
+    <div class="card">
+      <h2>Рівень</h2>
+      <div id="levelbadge"></div>
+      <div class="levelcards" id="levelcards"></div>
+      <p class="sub" style="margin:14px 0 0" id="levelnote"></p>
+    </div>
+
+    <div class="card">
+      <h2>Що робите</h2>
+      <p class="sub">Позначте роботи та вкажіть обсяг.</p>
+      <div id="works"></div>
+    </div>
+
+    <div class="card">
+      <h2>Умови</h2>
+      <p class="sub">Те, що змінює ціну за того самого обсягу.</p>
+      <div class="mods" id="mods"></div>
+    </div>
+
+    <div class="total" id="total"></div>
+
+    <div class="card">
+      <h2>З чого складається</h2>
+      <div id="breakdown"></div>
+      <details>
+        <summary>Звідки цифри</summary>
+        <div class="sources" id="sourcesBody"></div>
+      </details>
+      <div class="warnbox">Це орієнтир для розмови з клієнтом, а не фіксований прайс. Реальна ціна залежить від задачі, клієнта і того, про що ви домовитесь.</div>
+      <div class="row">
+        <button type="button" class="btn" id="backToQuiz">Повернутися до опитувальника</button>
+      </div>
+    </div>
+  </section>
+
+  <footer>Розрахунок відбувається у вашому браузері, відповіді нікуди не надсилаються. Курс валют — Національний банк України.</footer>
+</div>
+
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
