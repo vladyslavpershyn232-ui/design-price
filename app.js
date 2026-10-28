@@ -157,23 +157,78 @@
 
     var base = items.reduce(function (s, x) { return s + x.value; }, 0);
 
-    var modFactor = 1;
+    /* Надбавки складаються, а не множаться: три помножені надбавки
+       давали подвоєння ціни, і такий рахунок важко захистити перед клієнтом. */
+    var extra = 0;
     var modList = [];
     P.MODIFIERS.forEach(function (m) {
       var opt = m.options[mods[m.id]];
       if (opt.factor !== 1) {
-        modFactor *= opt.factor;
+        extra += opt.factor - 1;
         modList.push({ label: m.label + ': ' + opt.text, factor: opt.factor });
       }
     });
+    var modFactor = 1 + extra;
 
-    var total = base * modFactor;
+    // знижка за комплекс рахується від великих робіт, не від поштучних носіїв
+    var bigWorks = P.WORKS.filter(function (w) {
+      return work[w.id].on && (!w.countLabel || work[w.id].count > 0);
+    }).length;
+    var discount = P.bundleDiscount(bigWorks);
+
+    var total = base * modFactor * (1 - discount);
+    var days = estimateDays();
+
     return {
       items: items, base: base, modList: modList, modFactor: modFactor,
+      discount: discount, bigWorks: bigWorks, days: days,
       total: total,
+      tax: total * P.TAX_RATE,
+      net: total * (1 - P.TAX_RATE),
       low: total * (1 - P.SPREAD),
       high: total * (1 + P.SPREAD)
     };
+  }
+
+  /* Скільки часу це займе. Рахуємо в робочих днях: новачок повільніше,
+     сеньйор швидше, стислий термін означає щільнішу роботу, а не менше годин. */
+  function estimateDays() {
+    var speed = P.SPEED[level] || 1;
+    var days = 0;
+
+    if (work.logo.on) days += P.DAYS.logo;
+    if (work.identity.on) days += P.DAYS.identityItem * work.identity.count;
+    if (work.guide.on) days += P.DAYS.guide;
+    if (work.pages.on) days += P.DAYS.page * work.pages.count * P.pageFactor(work.pages.count);
+    if (work.packaging.on) days += P.DAYS.sku * work.packaging.count;
+
+    P.SINGLES.forEach(function (w) {
+      var st = singles[w.id];
+      if (st.on && st.count > 0) days += (w.days || 0.5) * st.count * P.bulkFactor(st.count);
+    });
+
+    days *= speed;
+    var urgency = P.MODIFIERS[0].options[mods.urgency];
+    if (urgency.factor > 1.4) days *= 0.5;
+    else if (urgency.factor > 1) days *= 0.7;
+    return days;
+  }
+
+  function plural(n, forms) {
+    var a = Math.abs(n) % 100, b = a % 10;
+    if (a > 10 && a < 20) return forms[2];
+    if (b > 1 && b < 5) return forms[1];
+    if (b === 1) return forms[0];
+    return forms[2];
+  }
+
+  var DAY_FORMS = ['робочий день', 'робочі дні', 'робочих днів'];
+
+  function formatDays(days) {
+    if (days < 1) return 'менше дня';
+    var n = days < 5 ? Math.round(days * 2) / 2 : Math.round(days);
+    var whole = Math.round(n);
+    return n + ' ' + plural(whole, DAY_FORMS);
   }
 
   function money(value) {
@@ -227,6 +282,8 @@
         var min = Number(el.min) || 1;
         var v = Math.max(min, Math.min(500, Number(el.value) || min));
         store[el.dataset[attr + 'count']].count = v;
+        // поле показує рівно те, що пішло в розрахунок
+        if (String(v) !== el.value) el.value = v;
         renderTotal();
       };
     });
@@ -278,6 +335,10 @@
       '<div class="label">Вилка по ринку</div>' +
       '<div class="money">' + money(low) + ' – ' + money(high) + ' ₴</div>' +
       '<div class="usd">≈ $' + money(low / rate) + ' – $' + money(high / rate) + '</div>' +
+      '<div class="totalgrid">' +
+      '<div><span>Орієнтовний строк</span><b>' + esc(formatDays(r.days)) + '</b></div>' +
+      '<div><span>Після 5% ФОП</span><b>' + money(roundNice(r.net)) + ' ₴</b></div>' +
+      '</div>' +
       '<div class="rate">Курс ' + rate.toFixed(2) + ' ₴/$ ' +
       (rateLive ? 'за ' + esc(rateDate) + ', НБУ' : '— запасний, на ' + esc(rateDate) + ': курс НБУ не завантажився') +
       '</div>';
@@ -290,7 +351,13 @@
         return '<div class="brow"><span>' + esc(m.label) + '</span><b>×' + m.factor + '</b></div>';
       }).join('');
     }
+    if (r.discount) {
+      rows += '<div class="brow"><span>Знижка за комплекс (' + r.bigWorks + ' великі роботи)</span><b>−' +
+        Math.round(r.discount * 100) + '%</b></div>';
+    }
     rows += '<div class="brow sum"><span>Розрахунок</span><b>' + money(roundNice(r.total)) + ' ₴</b></div>';
+    rows += '<div class="brow"><span>Єдиний податок 5%</span><b>−' + money(roundNice(r.tax)) + ' ₴</b></div>';
+    rows += '<div class="brow"><span>Залишається вам</span><b>' + money(roundNice(r.net)) + ' ₴</b></div>';
     $('breakdown').innerHTML = rows;
   }
 
@@ -307,6 +374,98 @@
     $('levelnote').textContent = level === levelFromQuiz || !levelFromQuiz
       ? 'Якщо вважаєте інакше — оберіть інший рівень, розрахунок перерахується.'
       : 'Рівень змінено вручну: ' + l.title + ' замість «' + levelData(levelFromQuiz).title + '».';
+  }
+
+  /* ---------- посилання на розрахунок ----------
+     Увесь стан кладемо в адресу: можна надіслати клієнту або зберегти собі. */
+
+  function stateToHash() {
+    var w = {};
+    P.WORKS.forEach(function (x) { if (work[x.id].on) w[x.id] = work[x.id].count; });
+    var sg = {};
+    P.SINGLES.forEach(function (x) { if (singles[x.id].on) sg[x.id] = singles[x.id].count; });
+    var payload = { l: level, w: w, s: sg, m: mods };
+    return '#' + encodeURIComponent(JSON.stringify(payload));
+  }
+
+  function applyHash() {
+    if (!location.hash || location.hash.length < 3) return false;
+    try {
+      var d = JSON.parse(decodeURIComponent(location.hash.slice(1)));
+      if (d.l && P.LEVELS.some(function (x) { return x.id === d.l; })) level = d.l;
+      P.WORKS.forEach(function (x) {
+        work[x.id].on = Object.prototype.hasOwnProperty.call(d.w || {}, x.id);
+        if (work[x.id].on) work[x.id].count = Math.max(1, Math.min(500, Number(d.w[x.id]) || 1));
+      });
+      P.SINGLES.forEach(function (x) {
+        singles[x.id].on = Object.prototype.hasOwnProperty.call(d.s || {}, x.id);
+        if (singles[x.id].on) singles[x.id].count = Math.max(x.min || 1, Math.min(500, Number(d.s[x.id]) || 1));
+      });
+      if (d.m) Object.keys(mods).forEach(function (k) {
+        if (typeof d.m[k] === 'number') mods[k] = d.m[k];
+      });
+      return true;
+    } catch (e) { return false; }
+  }
+
+  async function copyShareLink() {
+    var url = location.origin + location.pathname + stateToHash();
+    var btn = $('share');
+    try {
+      await navigator.clipboard.writeText(url);
+      btn.textContent = 'Посилання скопійовано';
+    } catch (e) {
+      location.hash = stateToHash();
+      btn.textContent = 'Посилання в адресному рядку';
+    }
+    setTimeout(function () { btn.textContent = 'Поділитися розрахунком'; }, 2500);
+  }
+
+  /* ---------- комерційна пропозиція ---------- */
+
+  function buildOffer() {
+    var r = calculate();
+    if (!r.items.length) return null;
+    var date = new Date().toLocaleDateString('uk-UA');
+    var lvl = levelData(level);
+    var rows = r.items.map(function (x) {
+      return '<tr><td>' + esc(x.label) + '</td><td class="num">' + money(roundNice(x.value)) + ' ₴</td></tr>';
+    }).join('');
+    var modRows = r.modList.map(function (m) {
+      return '<tr><td>' + esc(m.label) + '</td><td class="num">+' + Math.round((m.factor - 1) * 100) + '%</td></tr>';
+    }).join('');
+    var discountRow = r.discount
+      ? '<tr><td>Знижка за комплекс</td><td class="num">−' + Math.round(r.discount * 100) + '%</td></tr>' : '';
+
+    return '<!doctype html><html lang="uk"><head><meta charset="utf-8"><title>Комерційна пропозиція</title><style>' +
+      'body{font:14px/1.6 -apple-system,BlinkMacSystemFont,sans-serif;color:#121214;max-width:720px;margin:40px auto;padding:0 20px}' +
+      'h1{font-size:26px;letter-spacing:-.02em;margin:0 0 4px}' +
+      '.sub{color:#8b8d95;font-size:13px;margin-bottom:28px}' +
+      'table{border-collapse:collapse;width:100%;margin-bottom:8px}' +
+      'td{padding:11px 0;border-bottom:1px solid #e6e6e9}' +
+      '.num{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}' +
+      '.total{margin-top:24px;padding:20px;background:#121214;color:#fff;border-radius:14px}' +
+      '.total .big{font-size:28px;font-weight:650;letter-spacing:-.02em;margin-top:4px}' +
+      '.total .small{opacity:.65;font-size:13px}' +
+      '.note{margin-top:22px;color:#8b8d95;font-size:12px;line-height:1.6}' +
+      '</style></head><body>' +
+      '<h1>Комерційна пропозиція</h1>' +
+      '<div class="sub">Складено ' + esc(date) + ' · рівень виконавця: ' + esc(lvl.title) + '</div>' +
+      '<table>' + rows + modRows + discountRow + '</table>' +
+      '<div class="total"><div class="small">Вартість робіт</div>' +
+      '<div class="big">' + money(roundNice(r.low)) + ' – ' + money(roundNice(r.high)) + ' ₴</div>' +
+      '<div class="small">≈ $' + money(roundNice(r.low) / rate) + ' – $' + money(roundNice(r.high) / rate) +
+      ' · орієнтовний строк: ' + esc(formatDays(r.days)) + '</div></div>' +
+      '<p class="note">Ціни орієнтовні й залежать від остаточного обсягу задачі. ' +
+      'Курс ' + rate.toFixed(2) + ' ₴/$ за даними Національного банку.</p>' +
+      '</body></html>';
+  }
+
+  function download(name, text, mime) {
+    var url = URL.createObjectURL(new Blob([text], { type: mime || 'text/html;charset=utf-8' }));
+    var a = document.createElement('a');
+    a.href = url; a.download = name; a.click();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1500);
   }
 
   /* ---------- переключение экранов ---------- */
@@ -350,14 +509,22 @@
       renderCalc();
       show('calc');
     };
+    $('share').onclick = copyShareLink;
+    $('offer').onclick = function () {
+      var html = buildOffer();
+      if (!html) return;
+      download('propozytsiia.html', html);
+    };
     $('backToQuiz').onclick = function () {
       answers = {};
       renderQuiz();
       show('quiz');
     };
 
-    // Уровень запоминается: второй раз опитувальник проходить не нужно.
-    if (level) {
+    // Розрахунок міг прийти посиланням — тоді одразу показуємо його.
+    var fromLink = applyHash();
+    if (fromLink) { localStorage.setItem('calc_level', level); }
+    if (level || fromLink) {
       renderCalc();
       show('calc');
     }

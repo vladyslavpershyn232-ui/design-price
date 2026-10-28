@@ -89,7 +89,12 @@ h2{margin:0 0 4px;font-size:19px;letter-spacing:-.015em;font-weight:640}
 .total .label{font-size:13px;opacity:.65}
 .total .money{font-size:38px;font-weight:680;letter-spacing:-.03em;line-height:1.1;margin-top:6px}
 .total .usd{font-size:18px;opacity:.72;margin-top:6px;font-weight:550}
-.total .rate{font-size:12px;opacity:.5;margin-top:12px}
+.total .rate{font-size:12px;opacity:.5;margin-top:14px}
+.totalgrid{display:flex;gap:28px;flex-wrap:wrap;margin-top:18px;padding-top:16px;
+  border-top:1px solid rgba(255,255,255,.15)}
+html[data-theme="dark"] .totalgrid{border-top-color:rgba(0,0,0,.2)}
+.totalgrid span{display:block;font-size:12px;opacity:.6}
+.totalgrid b{font-size:17px;font-weight:620;margin-top:3px;display:block}
 
 .breakdown{margin-top:16px;border-top:1px solid var(--line);padding-top:16px}
 .brow{display:flex;justify-content:space-between;gap:16px;font-size:13.5px;padding:7px 0;

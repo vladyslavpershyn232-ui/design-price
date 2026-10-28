@@ -14,6 +14,20 @@
     sku: 5000            // одна упаковка: конструктив, розгортка, візуалізація
   };
 
+  /* Робочі дні для мідла. Опора: logochopper (експрес-лого 3 дні, лого 7,
+     лого + айдентика 14) і FormaInk (простий логотип 3–5 днів,
+     з гайдом 5–7, міні-айдентика 7–10, повний брендинг 14–45). */
+  var DAYS = {
+    logo: 7,
+    identityItem: 1,
+    guide: 3,
+    page: 0.3,
+    sku: 5
+  };
+
+  /* Новачок робить ту саму роботу довше, сеньйор — швидше. */
+  var SPEED = { junior: 1.3, middle: 1, senior: 0.8 };
+
   var LEVELS = [
     {
       id: 'junior', title: 'Новачок', short: 'Junior',
@@ -170,37 +184,37 @@
   /* Окремі носії — те, що графічний дизайнер робить поштучно, поза брендингом.
      Ціни з українських бірж і прайсів, жовтень 2026. */
   var SINGLES = [
-    { id: 'post', label: 'Пост для соцмереж', note: 'один пост або карусель', price: 450,
+    { id: 'post', label: 'Пост для соцмереж', note: 'один пост або карусель', price: 450, days: 0.3,
       countLabel: 'постів', defaultCount: 9, min: 1, bulk: true },
-    { id: 'story', label: 'Сторіз', note: 'вертикальний макет під відео чи статику', price: 300,
+    { id: 'story', label: 'Сторіз', note: 'вертикальний макет під відео чи статику', price: 300, days: 0.25,
       countLabel: 'сторіз', defaultCount: 5, min: 1, bulk: true },
-    { id: 'highlight', label: 'Іконки та обкладинки актуального', note: 'набір для профілю', price: 250,
+    { id: 'highlight', label: 'Іконки та обкладинки актуального', note: 'набір для профілю', price: 250, days: 0.15,
       countLabel: 'іконок', defaultCount: 6, min: 1, bulk: true },
-    { id: 'banner', label: 'Банер для веба', note: 'креатив під таргет, банер на сайт', price: 750,
+    { id: 'banner', label: 'Банер для веба', note: 'креатив під таргет, банер на сайт', price: 750, days: 0.4,
       countLabel: 'банерів', defaultCount: 3, min: 1, bulk: true },
-    { id: 'card', label: 'Візитівка', note: 'окремо, не в складі айдентики', price: 1200,
+    { id: 'card', label: 'Візитівка', note: 'окремо, не в складі айдентики', price: 1200, days: 1,
       countLabel: 'варіантів', defaultCount: 1, min: 1, bulk: true },
-    { id: 'sticker', label: 'Стікери', note: 'набір, від п’яти штук', price: 600,
+    { id: 'sticker', label: 'Стікери', note: 'набір, від п’яти штук', price: 600, days: 0.3,
       countLabel: 'штук', defaultCount: 5, min: 5, bulk: true },
-    { id: 'poster', label: 'Постер або афіша', note: 'авторська композиція під друк', price: 2500,
+    { id: 'poster', label: 'Постер або афіша', note: 'авторська композиція під друк', price: 2500, days: 2,
       countLabel: 'штук', defaultCount: 1, min: 1, bulk: true },
-    { id: 'flyer', label: 'Флаєр, листівка', note: 'дві сторони', price: 1500,
+    { id: 'flyer', label: 'Флаєр, листівка', note: 'дві сторони', price: 1500, days: 1,
       countLabel: 'штук', defaultCount: 1, min: 1, bulk: true },
-    { id: 'menu', label: 'Меню', note: 'для закладу, одна сторінка або розворот', price: 2500,
+    { id: 'menu', label: 'Меню', note: 'для закладу, одна сторінка або розворот', price: 2500, days: 2,
       countLabel: 'штук', defaultCount: 1, min: 1, bulk: true },
-    { id: 'merch', label: 'Мерч', note: 'принт на футболку, тоут, кепку — ціна дуже залежить від задачі', price: 1500,
+    { id: 'merch', label: 'Мерч', note: 'принт на футболку, тоут, кепку — ціна дуже залежить від задачі', price: 1500, days: 1,
       countLabel: 'принтів', defaultCount: 1, min: 1, bulk: true },
-    { id: 'outdoor', label: 'Зовнішня реклама', note: 'білборд, сітілайт, банер великого формату', price: 2500,
+    { id: 'outdoor', label: 'Зовнішня реклама', note: 'білборд, сітілайт, банер великого формату', price: 2500, days: 1.5,
       countLabel: 'макетів', defaultCount: 1, min: 1, bulk: true },
-    { id: 'signboard', label: 'Вивіска', note: 'макет під виробництво', price: 2000,
+    { id: 'signboard', label: 'Вивіска', note: 'макет під виробництво', price: 2000, days: 1.5,
       countLabel: 'штук', defaultCount: 1, min: 1, bulk: true },
-    { id: 'cover', label: 'Обкладинка', note: 'книга, альбом, зошит', price: 3000,
+    { id: 'cover', label: 'Обкладинка', note: 'книга, альбом, зошит', price: 3000, days: 2,
       countLabel: 'штук', defaultCount: 1, min: 1, bulk: true },
-    { id: 'certificate', label: 'Сертифікат, грамота', note: 'бланк під друк', price: 1500,
+    { id: 'certificate', label: 'Сертифікат, грамота', note: 'бланк під друк', price: 1500, days: 1,
       countLabel: 'штук', defaultCount: 1, min: 1, bulk: true },
-    { id: 'label', label: 'Етикетка', note: 'плоский макет на готову тару, без конструктиву', price: 1500,
+    { id: 'label', label: 'Етикетка', note: 'плоский макет на готову тару, без конструктиву', price: 1500, days: 1,
       countLabel: 'етикеток', defaultCount: 1, min: 1, bulk: true },
-    { id: 'pricelist', label: 'Прайс-лист', note: 'одна сторінка', price: 500,
+    { id: 'pricelist', label: 'Прайс-лист', note: 'одна сторінка', price: 500, days: 0.5,
       countLabel: 'сторінок', defaultCount: 1, min: 1, bulk: true }
   ];
 
@@ -219,6 +233,18 @@
   /* Розкид ринку навколо розрахунку. */
   var SPREAD = 0.25;
 
+  /* Комплекс дешевший за суму частин: спільне дослідження, одна логіка,
+     одні погодження. Знижка залежить від того, скільки великих робіт разом. */
+  function bundleDiscount(count) {
+    if (count >= 4) return 0.15;
+    if (count === 3) return 0.1;
+    if (count === 2) return 0.05;
+    return 0;
+  }
+
+  /* Єдиний податок третьої групи. */
+  var TAX_RATE = 0.05;
+
   /* Види робіт: підписи для екрана розрахунку. */
   var WORKS = [
     { id: 'logo', label: 'Логотип', note: 'знак, основні версії, файли для друку та екрана', base: 'logo' },
@@ -234,7 +260,8 @@
   global.PRICING = {
     BASE: BASE, LEVELS: LEVELS, QUESTIONS: QUESTIONS, THRESHOLDS: THRESHOLDS,
     MODIFIERS: MODIFIERS, WORKS: WORKS, SINGLES: SINGLES,
-    pageFactor: pageFactor, bulkFactor: bulkFactor,
+    DAYS: DAYS, SPEED: SPEED, TAX_RATE: TAX_RATE,
+    pageFactor: pageFactor, bulkFactor: bulkFactor, bundleDiscount: bundleDiscount,
     EXTRA_SKU_FACTOR: EXTRA_SKU_FACTOR, SPREAD: SPREAD,
     FALLBACK_RATE: 45.59,        // курс на 29.10.2026, якщо НБУ не відповість
     FALLBACK_RATE_DATE: '29.10.2026'
