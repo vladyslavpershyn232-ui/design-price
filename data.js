@@ -11,7 +11,7 @@
     identityItem: 1500,  // один носій айдентики
     guide: 4000,         // правила використання, міні-гайд
     page: 800,           // одна шпальта багатосторінкової продукції
-    sku: 5000            // одна упаковка або етикетка
+    sku: 5000            // одна упаковка: конструктив, розгортка, візуалізація
   };
 
   var LEVELS = [
@@ -198,6 +198,8 @@
       countLabel: 'штук', defaultCount: 1, min: 1, bulk: true },
     { id: 'certificate', label: 'Сертифікат, грамота', note: 'бланк під друк', price: 1500,
       countLabel: 'штук', defaultCount: 1, min: 1, bulk: true },
+    { id: 'label', label: 'Етикетка', note: 'плоский макет на готову тару, без конструктиву', price: 1500,
+      countLabel: 'етикеток', defaultCount: 1, min: 1, bulk: true },
     { id: 'pricelist', label: 'Прайс-лист', note: 'одна сторінка', price: 500,
       countLabel: 'сторінок', defaultCount: 1, min: 1, bulk: true }
   ];
@@ -225,7 +227,7 @@
     { id: 'guide', label: 'Правила використання', note: 'як застосовувати логотип, кольори, шрифти', base: 'guide' },
     { id: 'pages', label: 'Багатосторінкова продукція', note: 'каталог, презентація, брошура',
       base: 'page', countLabel: 'шпальт', per: 'за шпальту', defaultCount: 12 },
-    { id: 'packaging', label: 'Упаковка', note: 'коробка, етикетка, флоу-пак',
+    { id: 'packaging', label: 'Упаковка', note: 'повноцінна розробка: конструктив, розгортка, візуалізація',
       base: 'sku', countLabel: 'позицій', per: 'за позицію', defaultCount: 1 }
   ];
 
