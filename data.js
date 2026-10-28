@@ -176,7 +176,7 @@
       countLabel: 'сторіз', defaultCount: 5, min: 1, bulk: true },
     { id: 'highlight', label: 'Іконки та обкладинки актуального', note: 'набір для профілю', price: 250,
       countLabel: 'іконок', defaultCount: 6, min: 1, bulk: true },
-    { id: 'banner', label: 'Банер для веба', note: 'креатив під таргет, банер на сайт', price: 400,
+    { id: 'banner', label: 'Банер для веба', note: 'креатив під таргет, банер на сайт', price: 750,
       countLabel: 'банерів', defaultCount: 3, min: 1, bulk: true },
     { id: 'card', label: 'Візитівка', note: 'окремо, не в складі айдентики', price: 1200,
       countLabel: 'варіантів', defaultCount: 1, min: 1, bulk: true },
