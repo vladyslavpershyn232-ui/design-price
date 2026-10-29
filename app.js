@@ -430,6 +430,83 @@
 
   /* ---------- комерційна пропозиція ---------- */
 
+  /* Комерційна пропозиція як презентація: альбомний A4, слайд на розділ.
+     Друк у PDF робить сам браузер — жодних сторонніх бібліотек. */
+
+  var OFFER_CSS =
+    '@page{size:A4 landscape;margin:0}' +
+    '*{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}' +
+    'body{margin:0;font:16px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;' +
+    'color:#121214;background:#55565c}' +
+    '.bar{position:sticky;top:0;z-index:9;background:#121214;color:#fff;padding:12px 20px;' +
+    'font-size:13px;display:flex;gap:14px;align-items:center;justify-content:center}' +
+    '.bar button{font:inherit;border:0;border-radius:8px;padding:8px 16px;background:#fff;' +
+    'color:#121214;font-weight:600;cursor:pointer}' +
+    '.slide{width:297mm;height:210mm;padding:17mm 20mm;background:#fff;margin:0 auto 10px;' +
+    'page-break-after:always;break-after:page;display:flex;flex-direction:column;position:relative;overflow:hidden}' +
+    '.slide:last-child{page-break-after:auto;break-after:auto;margin-bottom:0}' +
+    '.num{position:absolute;right:20mm;bottom:12mm;font-size:11px;color:#b6b7bd;letter-spacing:.06em}' +
+    '.kicker{font-size:11px;text-transform:uppercase;letter-spacing:.14em;color:#8b8d95;font-weight:650;margin-bottom:10px}' +
+    'h1{font-size:54px;line-height:1.02;letter-spacing:-.03em;margin:0;font-weight:700}' +
+    'h2{font-size:30px;line-height:1.12;letter-spacing:-.025em;margin:0 0 20px;font-weight:680}' +
+    'h3{font-size:17px;margin:0 0 6px;font-weight:650}' +
+    /* обкладинка */
+    '.cover{background:#121214;color:#fff;justify-content:space-between}' +
+    '.cover .kicker{color:rgba(255,255,255,.55)}' +
+    '.cover h1{max-width:20ch}' +
+    '.cover .who{display:flex;gap:46px;flex-wrap:wrap;font-size:14px}' +
+    '.cover .who span{display:block;color:rgba(255,255,255,.5);font-size:11px;' +
+    'text-transform:uppercase;letter-spacing:.1em;margin-bottom:5px}' +
+    '.cover .who b{font-weight:600;font-size:16px}' +
+    '.cover .rule{height:3px;background:#fff;width:64px;margin:26px 0 22px}' +
+    '.cover .coverlist{display:flex;gap:9px;flex-wrap:wrap;max-width:75%}' +
+    '.cover .coverlist span{border:1px solid rgba(255,255,255,.28);border-radius:99px;' +
+    'padding:7px 15px;font-size:13.5px;color:rgba(255,255,255,.82)}' +
+    /* що входить */
+    '.cards{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;flex:1;align-content:start}' +
+    '.cards.one{grid-template-columns:1fr}' +
+    '.card{border:1px solid #e6e6e9;border-radius:14px;padding:16px 18px;background:#fafafb}' +
+    '.card .qty{font-size:11px;color:#8b8d95;font-weight:500;margin-left:7px}' +
+    '.card ul{margin:0;padding-left:16px}' +
+    '.card li{font-size:13px;line-height:1.5;color:#36373d;margin-bottom:3px}' +
+    '.chips{display:flex;gap:7px;flex-wrap:wrap;margin-top:4px}' +
+    '.chip{background:#f0f0f2;border-radius:99px;padding:5px 12px;font-size:12.5px;color:#36373d}' +
+    /* етапи */
+    '.stages{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;flex:1;align-content:center}' +
+    '.stage{border-top:3px solid #121214;padding-top:14px}' +
+    '.stage .n{font-size:34px;font-weight:700;letter-spacing:-.03em;line-height:1;margin-bottom:8px}' +
+    '.stage p{margin:0;font-size:13.5px;line-height:1.5;color:#55565c}' +
+    /* вартість */
+    '.costwrap{display:grid;grid-template-columns:1.25fr 1fr;gap:26px;flex:1}' +
+    'table{border-collapse:collapse;width:100%}' +
+    'td{padding:9px 0;border-bottom:1px solid #ececef;font-size:14px}' +
+    'tr.mod td{color:#8b8d95;font-size:13px}' +
+    '.n2{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}' +
+    '.price{background:#121214;color:#fff;border-radius:18px;padding:26px;display:flex;' +
+    'flex-direction:column;justify-content:center}' +
+    '.price .small{opacity:.55;font-size:12px;text-transform:uppercase;letter-spacing:.1em}' +
+    '.price .big{font-size:46px;font-weight:700;letter-spacing:-.03em;margin:6px 0 2px;line-height:1}' +
+    '.price .usd{opacity:.6;font-size:14px}' +
+    '.price .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:22px;' +
+    'padding-top:18px;border-top:1px solid rgba(255,255,255,.18)}' +
+    '.price .grid span{display:block;opacity:.55;font-size:11px;text-transform:uppercase;letter-spacing:.08em}' +
+    '.price .grid b{font-size:18px;font-weight:650}' +
+    '.why{margin-top:14px;font-size:12.5px;color:#55565c;line-height:1.55}' +
+    /* умови */
+    '.two{display:grid;grid-template-columns:1fr 1fr;gap:34px;flex:1;align-content:start}' +
+    '.two ul{margin:0;padding-left:17px}' +
+    '.two li{font-size:14px;line-height:1.55;color:#36373d;margin-bottom:9px}' +
+    /* фінал */
+    '.final{background:#121214;color:#fff;justify-content:center;align-items:flex-start}' +
+    '.final h2{font-size:38px;max-width:22ch}' +
+    '.final .kicker{color:rgba(255,255,255,.55)}' +
+    '.brief{display:inline-block;margin-top:22px;background:#fff;color:#121214;border-radius:12px;' +
+    'padding:15px 22px;font-size:16px;font-weight:600;text-decoration:none;word-break:break-all;max-width:80%}' +
+    '.final .contacts{margin-top:34px;font-size:15px;opacity:.75;line-height:1.7}' +
+    '@media print{body{background:#fff}.bar{display:none}.slide{margin:0}}';
+
+  function slideNum(n) { return '<div class="num">' + n + '</div>'; }
+
   function buildOffer() {
     var r = calculate();
     if (!r.items.length) return null;
@@ -437,125 +514,141 @@
     var date = new Date().toLocaleDateString('uk-UA', { day: 'numeric', month: 'long', year: 'numeric' });
     var author = (localStorage.getItem('calc_author') || '').trim();
     var client = (localStorage.getItem('calc_client') || '').trim();
+    var brief = (localStorage.getItem('calc_brief') || '').trim();
+    var slides = [];
+    var n = 0;
 
-    /* Блоки «що входить» — тільки для тих робіт, які обрані. */
-    var chosen = P.WORKS.filter(function (w) { return work[w.id].on; });
-    var scope = chosen.map(function (w) {
-      var count = w.countLabel && work[w.id].count > 1
-        ? ' <span class="qty">' + work[w.id].count + ' ' + esc(w.countLabel) + '</span>' : '';
-      return '<section class="scope"><h3>' + esc(w.label) + count + '</h3>' +
-        '<ul>' + (w.includes || []).map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>' +
-        '</section>';
-    }).join('');
+    /* 1. Обкладинка */
+    n++;
+    /* Назву клієнта не схиляємо — ставимо її заголовком як є. */
+    var coverWorks = P.WORKS.filter(function (w) { return work[w.id].on; })
+      .map(function (w) { return w.label; })
+      .concat(P.SINGLES.filter(function (w) { return singles[w.id].on; }).length ? ['окремі макети'] : []);
+
+    slides.push('<div class="slide cover">' +
+      '<div><div class="kicker">Комерційна пропозиція</div>' +
+      '<h1>' + esc(client || 'Дизайн під ваш проєкт') + '</h1>' +
+      '<div class="rule"></div>' +
+      '<div class="coverlist">' + coverWorks.map(function (x) {
+        return '<span>' + esc(x) + '</span>';
+      }).join('') + '</div></div>' +
+      '<div class="who">' +
+      (author ? '<div><span>Виконавець</span><b>' + esc(author) + '</b></div>' : '') +
+      '<div><span>Дата</span><b>' + esc(date) + '</b></div>' +
+      '<div><span>Дійсна до</span><b>' +
+      esc(new Date(Date.now() + 14 * 864e5).toLocaleDateString('uk-UA', { day: 'numeric', month: 'long' })) +
+      '</b></div>' +
+      '</div>' + slideNum(n) + '</div>');
+
+    /* 2. Що буде зроблено — по чотири картки на слайд */
+    var chosen = P.WORKS.filter(function (w) { return work[w.id].on; }).map(function (w) {
+      var qty = w.countLabel && work[w.id].count > 1
+        ? '<span class="qty">' + work[w.id].count + ' ' + esc(w.countLabel) + '</span>' : '';
+      return '<div class="card"><h3>' + esc(w.label) + qty + '</h3>' +
+        '<ul>' + (w.includes || []).map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul></div>';
+    });
 
     var singlesChosen = P.SINGLES.filter(function (w) { return singles[w.id].on; });
     if (singlesChosen.length) {
-      scope += '<section class="scope"><h3>Окремі макети</h3><ul>' +
+      chosen.push('<div class="card"><h3>Окремі макети</h3><div class="chips">' +
         singlesChosen.map(function (w) {
-          return '<li>' + esc(w.label) + ' — ' + singles[w.id].count + ' шт. <span class="muted">' +
-            esc(w.note) + '</span></li>';
-        }).join('') + '</ul></section>';
+          return '<span class="chip">' + esc(w.label) + ' · ' + singles[w.id].count + '</span>';
+        }).join('') + '</div></div>');
     }
 
+    for (var i = 0; i < chosen.length; i += 4) {
+      n++;
+      var part = chosen.slice(i, i + 4);
+      slides.push('<div class="slide">' +
+        '<div class="kicker">Що буде зроблено' + (chosen.length > 4 ? ' · ' + (Math.floor(i / 4) + 1) : '') + '</div>' +
+        '<h2>Обсяг робіт</h2>' +
+        '<div class="cards' + (part.length === 1 ? ' one' : '') + '">' + part.join('') + '</div>' +
+        slideNum(n) + '</div>');
+    }
+
+    /* 3. Як іде робота */
+    n++;
+    slides.push('<div class="slide">' +
+      '<div class="kicker">Процес</div><h2>Як іде робота</h2>' +
+      '<div class="stages">' + P.STAGES.map(function (st, k) {
+        return '<div class="stage"><div class="n">' + (k + 1) + '</div>' +
+          '<h3>' + esc(st.title) + '</h3><p>' + esc(st.text) + '</p></div>';
+      }).join('') + '</div>' + slideNum(n) + '</div>');
+
+    /* 4. Вартість */
+    n++;
+    var main = roundNice(r.total);
     var priceRows = r.items.map(function (x) {
-      return '<tr><td>' + esc(x.label) + '</td><td class="num">' + money(roundNice(x.value)) + ' ₴</td></tr>';
+      return '<tr><td>' + esc(x.label) + '</td><td class="n2">' + money(roundNice(x.value)) + ' ₴</td></tr>';
     }).join('');
     var modRows = r.modList.map(function (m) {
-      return '<tr class="mod"><td>' + esc(m.label) + '</td><td class="num">+' +
+      return '<tr class="mod"><td>' + esc(m.label) + '</td><td class="n2">+' +
         Math.round((m.factor - 1) * 100) + '%</td></tr>';
     }).join('');
     var discountRow = r.discount
-      ? '<tr class="mod"><td>Знижка за комплекс</td><td class="num">−' +
-        Math.round(r.discount * 100) + '%</td></tr>' : '';
+      ? '<tr class="mod"><td>Знижка за комплекс</td><td class="n2">−' + Math.round(r.discount * 100) + '%</td></tr>' : '';
 
-    var stages = P.STAGES.map(function (st, i) {
-      return '<li><b>' + esc(st.title) + '</b><span>' + esc(st.text) + '</span></li>';
-    }).join('');
+    var why = [];
+    if (r.discount) why.push('Роботи йдуть разом, тому дешевше, ніж поодинці: знижка ' +
+      Math.round(r.discount * 100) + '%.');
+    r.modList.forEach(function (m) { why.push(esc(m.label) + ' — плюс ' + Math.round((m.factor - 1) * 100) + '%.'); });
+    if (!why.length) why.push('Ціна без надбавок: звичайні строки, один напрямок, стандартна передача прав.');
 
-    var listOf = function (items) {
-      return '<ul class="plain">' + items.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>';
-    };
+    slides.push('<div class="slide">' +
+      '<div class="kicker">Гроші</div><h2>Вартість і з чого вона складається</h2>' +
+      '<div class="costwrap"><div><table>' + priceRows + modRows + discountRow + '</table>' +
+      '<div class="why">' + why.join(' ') + '</div></div>' +
+      '<div class="price"><div class="small">Разом</div>' +
+      '<div class="big">' + money(main) + ' ₴</div>' +
+      '<div class="usd">≈ $' + money(main / rate) + ' за курсом ' + rate.toFixed(2) + ' ₴/$</div>' +
+      '<div class="grid"><div><span>Строк</span><b>' + esc(formatDays(r.days)) + '</b></div>' +
+      '<div><span>Передоплата 50%</span><b>' + money(roundNice(main / 2)) + ' ₴</b></div></div>' +
+      '</div></div>' + slideNum(n) + '</div>');
 
-    var main = roundNice(r.total);
+    /* 5. Умови */
+    n++;
+    slides.push('<div class="slide">' +
+      '<div class="kicker">Домовленості</div><h2>Умови роботи</h2>' +
+      '<div class="two">' +
+      '<div><h3>Як ми працюємо</h3><ul>' +
+      P.TERMS.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul></div>' +
+      '<div><h3>Що потрібно від вас</h3><ul>' +
+      P.CLIENT_NEEDS.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul></div>' +
+      '</div>' + slideNum(n) + '</div>');
+
+    /* 6. Бриф і контакти */
+    n++;
+    slides.push('<div class="slide final">' +
+      '<div class="kicker">Наступний крок</div>' +
+      '<h2>' + (brief ? 'Заповніть бриф — і починаємо' : 'Напишіть мені, і почнемо з брифу') + '</h2>' +
+      (brief ? '<a class="brief" href="' + esc(brief) + '">' + esc(brief) + '</a>' : '') +
+      '<div class="contacts">' + (author ? esc(author) + '<br>' : '') +
+      'Пропозиція дійсна 14 днів від ' + esc(date) + '</div>' +
+      slideNum(n) + '</div>');
 
     return '<!doctype html><html lang="uk"><head><meta charset="utf-8">' +
       '<meta name="viewport" content="width=device-width, initial-scale=1">' +
-      '<title>Комерційна пропозиція</title><style>' +
-      '*{box-sizing:border-box}' +
-      'body{font:15px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;' +
-      'color:#121214;margin:0;background:#f6f6f7}' +
-      '.page{max-width:760px;margin:0 auto;background:#fff;padding:56px 56px 48px}' +
-      '.head{border-bottom:2px solid #121214;padding-bottom:22px;margin-bottom:34px}' +
-      'h1{font-size:30px;letter-spacing:-.025em;margin:0 0 6px;font-weight:680}' +
-      '.meta{color:#8b8d95;font-size:13px}' +
-      '.meta b{color:#121214;font-weight:550}' +
-      'h2{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:#8b8d95;' +
-      'margin:38px 0 14px;font-weight:650}' +
-      '.lead{font-size:16px;line-height:1.6;color:#36373d;margin:0 0 6px}' +
-      '.scope{margin-bottom:22px}' +
-      '.scope h3{font-size:16px;margin:0 0 8px;font-weight:620}' +
-      '.scope .qty{font-size:12px;color:#8b8d95;font-weight:400;margin-left:6px}' +
-      '.scope ul{margin:0;padding-left:18px}' +
-      '.scope li{margin-bottom:4px;color:#36373d}' +
-      '.muted{color:#8b8d95;font-size:13px}' +
-      'ol.stages{list-style:none;counter-reset:s;margin:0;padding:0}' +
-      'ol.stages li{counter-increment:s;position:relative;padding-left:40px;margin-bottom:16px}' +
-      'ol.stages li::before{content:counter(s);position:absolute;left:0;top:1px;width:26px;height:26px;' +
-      'border-radius:99px;background:#121214;color:#fff;font-size:13px;display:flex;' +
-      'align-items:center;justify-content:center;font-weight:600}' +
-      'ol.stages b{display:block;font-size:15px;margin-bottom:2px}' +
-      'ol.stages span{color:#55565c;font-size:14px}' +
-      'ul.plain{margin:0;padding-left:18px}' +
-      'ul.plain li{margin-bottom:6px;color:#36373d}' +
-      'table{border-collapse:collapse;width:100%}' +
-      'td{padding:11px 0;border-bottom:1px solid #e6e6e9;font-size:14px}' +
-      'tr.mod td{color:#8b8d95}' +
-      '.num{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}' +
-      '.total{margin-top:26px;padding:24px 26px;background:#121214;color:#fff;border-radius:16px}' +
-      '.total .small{opacity:.6;font-size:13px}' +
-      '.total .big{font-size:34px;font-weight:680;letter-spacing:-.025em;margin:4px 0 2px}' +
-      '.total .row{display:flex;gap:34px;flex-wrap:wrap;margin-top:18px;padding-top:16px;' +
-      'border-top:1px solid rgba(255,255,255,.16)}' +
-      '.total .row div span{display:block;opacity:.6;font-size:12px}' +
-      '.total .row div b{font-size:16px;font-weight:620}' +
-      '.foot{margin-top:40px;padding-top:20px;border-top:1px solid #e6e6e9;' +
-      'color:#8b8d95;font-size:12.5px;line-height:1.6}' +
-      '@media print{body{background:#fff}.page{padding:0;max-width:none}}' +
-      '@media (max-width:640px){.page{padding:28px 20px}h1{font-size:24px}.total .big{font-size:27px}}' +
-      '</style></head><body><div class="page">' +
+      '<title>Комерційна пропозиція' + (client ? ' · ' + esc(client) : '') + '</title>' +
+      '<style>' + OFFER_CSS + '</style></head><body>' +
+      '<div class="bar">Щоб зберегти у PDF: «Друк» → «Зберегти як PDF», орієнтація альбомна' +
+      '<button onclick="window.print()">Зберегти PDF</button></div>' +
+      slides.join('') +
+      '<scr' + 'ipt>setTimeout(function(){window.print()},700)</scr' + 'ipt>' +
+      '</body></html>';
+  }
 
-      '<div class="head"><h1>Комерційна пропозиція</h1>' +
-      '<div class="meta">' + esc(date) +
-      (client ? ' · для <b>' + esc(client) + '</b>' : '') +
-      (author ? ' · від <b>' + esc(author) + '</b>' : '') +
-      '</div></div>' +
-
-      '<p class="lead">Нижче — що саме буде зроблено, як іде робота, скільки це коштує ' +
-      'і що потрібно з вашого боку. Якщо щось не підходить, обсяг можна змінити — ' +
-      'вартість перерахується.</p>' +
-
-      '<h2>Що входить</h2>' + scope +
-
-      '<h2>Як іде робота</h2><ol class="stages">' + stages + '</ol>' +
-
-      '<h2>Вартість</h2>' +
-      '<table>' + priceRows + modRows + discountRow + '</table>' +
-      '<div class="total">' +
-      '<div class="small">Разом</div>' +
-      '<div class="big">' + money(main) + ' ₴</div>' +
-      '<div class="small">≈ $' + money(main / rate) + ' за курсом ' + rate.toFixed(2) + ' ₴/$</div>' +
-      '<div class="row">' +
-      '<div><span>Строк</span><b>' + esc(formatDays(r.days)) + '</b></div>' +
-      '<div><span>Передоплата 50%</span><b>' + money(roundNice(main / 2)) + ' ₴</b></div>' +
-      '</div></div>' +
-
-      '<h2>Умови</h2>' + listOf(P.TERMS) +
-      '<h2>Що потрібно від вас</h2>' + listOf(P.CLIENT_NEEDS) +
-
-      '<div class="foot">Пропозиція дійсна 14 днів від дати складання. ' +
-      'Остаточна вартість фіксується після брифу, коли стає зрозумілим точний обсяг.' +
-      (author ? '<br>' + esc(author) : '') +
-      '</div></div></body></html>';
+  function openOffer() {
+    var html = buildOffer();
+    if (!html) return;
+    var w = window.open('', '_blank');
+    if (!w) {
+      // спливаюче вікно заблоковане — віддаємо файлом
+      download('propozytsiia.html', html);
+      return;
+    }
+    w.document.open();
+    w.document.write(html);
+    w.document.close();
   }
 
   function download(name, text, mime) {
@@ -606,18 +699,14 @@
       renderCalc();
       show('calc');
     };
-    ['author', 'client'].forEach(function (id) {
+    ['author', 'client', 'brief'].forEach(function (id) {
       var el = $(id);
       el.value = localStorage.getItem('calc_' + id) || '';
       el.addEventListener('input', function () { localStorage.setItem('calc_' + id, el.value); });
     });
 
     $('share').onclick = copyShareLink;
-    $('offer').onclick = function () {
-      var html = buildOffer();
-      if (!html) return;
-      download('propozytsiia.html', html);
-    };
+    $('offer').onclick = openOffer;
     $('backToQuiz').onclick = function () {
       answers = {};
       renderQuiz();
@@ -638,6 +727,7 @@
     window.__calc = {
       state: function () { return { level: level, levelFromQuiz: levelFromQuiz, work: work, mods: mods }; },
       result: function () { return level ? calculate() : null; },
+    offer: function () { return buildOffer(); },
       answer: function (i, k) { answers[i] = k; renderQuiz(); },
       go: show
     };
