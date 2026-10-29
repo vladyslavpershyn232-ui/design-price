@@ -651,7 +651,7 @@
   function buildOffer(layout) {
     var r = calculate();
     if (!r.items.length) return null;
-    layout = layout || localStorage.getItem('calc_cost_layout') || 'a';
+    layout = layout || localStorage.getItem('calc_cost_layout') || 'c';
 
     var date = new Date().toLocaleDateString('uk-UA', { day: 'numeric', month: 'long', year: 'numeric' });
     var author = (localStorage.getItem('calc_author') || '').trim();
@@ -737,6 +737,31 @@
     r.modList.forEach(function (m) { why.push(esc(m.label) + ' — плюс ' + Math.round((m.factor - 1) * 100) + '%.'); });
     if (!why.length) why.push('Ціна без надбавок: звичайні строки, один напрямок, стандартна передача прав.');
 
+    var heroBlock =
+      '<div class="hero">' +
+      '<div class="l"><span>Разом</span><b>' + money(main) + ' ₴</b>' +
+      '<i>≈ $' + money(main / rate) + ' за курсом ' + rate.toFixed(2) + ' ₴/$</i></div>' +
+      '<div class="r">' +
+      '<div><span>Строк</span><b>' + esc(formatDays(r.days)) + '</b></div>' +
+      '<div><span>Передоплата 50%</span><b>' + money(roundNice(main / 2)) + ' ₴</b></div>' +
+      '</div></div>';
+
+    var tableBlock = '<div class="costcols"><table>' + priceRows + modRows + discountRow + '</table>' +
+      '<div class="why" style="margin:0">' + why.join(' ') + '</div></div>';
+
+    if (layout === 'c') {
+      // ціна смугою знизу, таблиця зверху — сторінка не ділиться навпіл
+      slides.push('<div class="slide">' +
+        '<div class="kicker">Гроші</div><h2>Вартість і з чого вона складається</h2>' +
+        '<div class="costb">' + tableBlock +
+        '<div style="margin-top:24px">' + heroBlock + '</div></div>' +
+        slideNum(n) + '</div>');
+      n++;
+      slides.push('');  // заглушка, прибираємо нижче
+      slides.pop();
+      n--;
+    }
+
     var costBody = layout === 'b'
       ? '<div class="costb"><div class="hero">' +
         '<div class="l"><span>Разом</span><b>' + money(main) + ' ₴</b>' +
@@ -758,9 +783,11 @@
         '<div><span>Передоплата 50%</span><b>' + money(roundNice(main / 2)) + ' ₴</b></div>' +
         '</div></div></div>';
 
-    slides.push('<div class="slide">' +
-      '<div class="kicker">Гроші</div><h2>Вартість і з чого вона складається</h2>' +
-      costBody + slideNum(n) + '</div>');
+    if (layout !== 'c') {
+      slides.push('<div class="slide">' +
+        '<div class="kicker">Гроші</div><h2>Вартість і з чого вона складається</h2>' +
+        costBody + slideNum(n) + '</div>');
+    }
 
     /* 5. Умови */
     n++;
@@ -874,15 +901,21 @@
     $('addCustom').onclick = addCustomItem;
 
     var layoutBtn = $('costLayout');
+    var LAYOUTS = [
+      { id: 'c', title: 'ціна знизу' },
+      { id: 'b', title: 'ціна зверху' },
+      { id: 'a', title: 'ціна збоку' }
+    ];
     var paintLayout = function () {
-      var v = localStorage.getItem('calc_cost_layout') || 'a';
-      layoutBtn.textContent = v === 'b'
-        ? 'Сторінка вартості: ціна зверху'
-        : 'Сторінка вартості: ціна збоку';
+      var v = localStorage.getItem('calc_cost_layout') || 'c';
+      var cur = LAYOUTS.filter(function (x) { return x.id === v; })[0] || LAYOUTS[0];
+      layoutBtn.textContent = 'Сторінка вартості: ' + cur.title;
     };
     layoutBtn.onclick = function () {
-      var v = (localStorage.getItem('calc_cost_layout') || 'a') === 'a' ? 'b' : 'a';
-      localStorage.setItem('calc_cost_layout', v);
+      var v = localStorage.getItem('calc_cost_layout') || 'c';
+      var i = LAYOUTS.findIndex(function (x) { return x.id === v; });
+      var next = LAYOUTS[(i + 1) % LAYOUTS.length];
+      localStorage.setItem('calc_cost_layout', next.id);
       paintLayout();
     };
     paintLayout();
