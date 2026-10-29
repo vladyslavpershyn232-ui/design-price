@@ -651,7 +651,8 @@
     /* Назву клієнта не схиляємо — ставимо її заголовком як є. */
     var coverWorks = P.WORKS.filter(function (w) { return work[w.id].on; })
       .map(function (w) { return w.label; })
-      .concat(allSingles().filter(function (w) { return singles[w.id] && singles[w.id].on; }).length ? ['окремі макети'] : []);
+      .concat(allSingles().filter(function (w) { return singles[w.id] && singles[w.id].on; }).length
+        ? ['Окремі макети'] : []);
 
     slides.push('<div class="slide cover">' +
       '<div><div class="kicker">Комерційна пропозиція</div>' +
