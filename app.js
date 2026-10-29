@@ -346,12 +346,16 @@
   function bindPriceEditing() {
     var factor = levelData(level).factor;
     Array.prototype.forEach.call(document.querySelectorAll('[data-price]'), function (el) {
-      el.onchange = function () {
+      var apply = function () {
         var shown = Math.max(0, Number(el.value) || 0);
         priceOverrides[el.dataset.price] = Math.round(shown / factor);
         localStorage.setItem('calc_prices', JSON.stringify(priceOverrides));
-        renderCalc();
+        // перераховуємо підсумок одразу, список не чіпаємо: інакше поле втратить фокус
+        renderTotal();
+        $('resetPrices').classList.remove('hidden');
       };
+      el.oninput = apply;
+      el.onchange = apply;
     });
     Array.prototype.forEach.call(document.querySelectorAll('[data-delcustom]'), function (el) {
       el.onclick = function () {
@@ -457,6 +461,9 @@
     $('editPrices').textContent = editPrices ? 'Готово' : 'Змінити ціни';
     $('editPrices').classList.toggle('primary', editPrices);
     $('resetPrices').classList.toggle('hidden', !Object.keys(priceOverrides).length);
+    $('priceHint').classList.toggle('hidden', !editPrices);
+    $('priceHint').textContent = 'Вписуйте свою ціну — підсумок перераховується одразу. ' +
+      'Ціна вказується для рівня «' + levelData(level).title + '», для інших рівнів перерахується сама.';
     renderLevelCards();
     renderWorks();
     renderMods();

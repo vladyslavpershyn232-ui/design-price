@@ -90,6 +90,8 @@ h2{margin:0 0 4px;font-size:19px;letter-spacing:-.015em;font-weight:640}
 .total .money{font-size:38px;font-weight:680;letter-spacing:-.03em;line-height:1.1;margin-top:6px}
 .total .usd{font-size:18px;opacity:.72;margin-top:6px;font-weight:550}
 .total .rate{font-size:12px;opacity:.5;margin-top:14px}
+.pricehint{background:var(--mut-bg);color:var(--ink-2);border-radius:11px;padding:11px 14px;
+  font-size:12.5px;line-height:1.5;margin:0 0 16px}
 .cardhead{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;flex-wrap:wrap}
 .cardtools{display:flex;gap:8px;flex:none}
 .workprice.changed{color:var(--ink);font-weight:600}

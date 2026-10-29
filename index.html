@@ -6,7 +6,7 @@
 <title>Скільки коштує дизайн</title>
 <meta name="description" content="Опитувальник на рівень і розрахунок вартості дизайну за українським фриланс-ринком.">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='85'>₴</text></svg>">
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css?v=7">
 </head>
 <body>
 
@@ -48,8 +48,17 @@
     </div>
 
     <div class="card">
-      <h2>Комплексні роботи</h2>
-      <p class="sub">Позначте роботи та вкажіть обсяг.</p>
+      <div class="cardhead">
+        <div>
+          <h2>Комплексні роботи</h2>
+          <p class="sub">Позначте роботи та вкажіть обсяг.</p>
+        </div>
+        <div class="cardtools">
+          <button type="button" class="minibtn" id="editPrices">Змінити ціни</button>
+          <button type="button" class="minibtn hidden" id="resetPrices">Повернути типові</button>
+        </div>
+      </div>
+      <p class="pricehint hidden" id="priceHint"></p>
       <div id="works"></div>
     </div>
 
@@ -58,10 +67,6 @@
         <div>
           <h2>Окремі носії</h2>
           <p class="sub">Поштучна робота поза брендингом. Що більший тираж однотипних макетів, то дешевша кожна штука.</p>
-        </div>
-        <div class="cardtools">
-          <button type="button" class="minibtn" id="editPrices">Змінити ціни</button>
-          <button type="button" class="minibtn hidden" id="resetPrices">Повернути типові</button>
         </div>
       </div>
       <div id="singles"></div>
@@ -114,7 +119,7 @@
   <footer>Розрахунок відбувається у вашому браузері, відповіді нікуди не надсилаються. Курс валют — Національний банк України.</footer>
 </div>
 
-<script src="data.js"></script>
-<script src="app.js"></script>
+<script src="data.js?v=7"></script>
+<script src="app.js?v=7"></script>
 </body>
 </html>
