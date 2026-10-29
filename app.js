@@ -330,11 +330,18 @@
       return;
     }
 
+    /* Головне число — сам розрахунок. Вилка поруч і дрібнішим:
+       вона показує розкид ринку, а не невизначеність розрахунку. */
+    var main = roundNice(r.total);
     var low = roundNice(r.low), high = roundNice(r.high);
     $('total').innerHTML =
-      '<div class="label">Вилка по ринку</div>' +
-      '<div class="money">' + money(low) + ' – ' + money(high) + ' ₴</div>' +
-      '<div class="usd">≈ $' + money(low / rate) + ' – $' + money(high / rate) + '</div>' +
+      '<div class="label">Вартість робіт</div>' +
+      '<div class="money">' + money(main) + ' ₴</div>' +
+      '<div class="usd">≈ $' + money(main / rate) + '</div>' +
+      '<div class="spread"><b>' + money(low) + ' – ' + money(high) + ' ₴</b>' +
+      '<span>Стільки за ту саму роботу просять різні виконавці: ±' +
+      Math.round(P.SPREAD * 100) + '% навколо розрахунку. Нижня межа — якщо поступитись, ' +
+      'верхня — якщо клієнт складний або робота термінова.</span></div>' +
       '<div class="totalgrid">' +
       '<div><span>Орієнтовний строк</span><b>' + esc(formatDays(r.days)) + '</b></div>' +
       '<div><span>Після 5% ФОП</span><b>' + money(roundNice(r.net)) + ' ₴</b></div>' +
@@ -426,39 +433,129 @@
   function buildOffer() {
     var r = calculate();
     if (!r.items.length) return null;
-    var date = new Date().toLocaleDateString('uk-UA');
-    var lvl = levelData(level);
-    var rows = r.items.map(function (x) {
+
+    var date = new Date().toLocaleDateString('uk-UA', { day: 'numeric', month: 'long', year: 'numeric' });
+    var author = (localStorage.getItem('calc_author') || '').trim();
+    var client = (localStorage.getItem('calc_client') || '').trim();
+
+    /* Блоки «що входить» — тільки для тих робіт, які обрані. */
+    var chosen = P.WORKS.filter(function (w) { return work[w.id].on; });
+    var scope = chosen.map(function (w) {
+      var count = w.countLabel && work[w.id].count > 1
+        ? ' <span class="qty">' + work[w.id].count + ' ' + esc(w.countLabel) + '</span>' : '';
+      return '<section class="scope"><h3>' + esc(w.label) + count + '</h3>' +
+        '<ul>' + (w.includes || []).map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>' +
+        '</section>';
+    }).join('');
+
+    var singlesChosen = P.SINGLES.filter(function (w) { return singles[w.id].on; });
+    if (singlesChosen.length) {
+      scope += '<section class="scope"><h3>Окремі макети</h3><ul>' +
+        singlesChosen.map(function (w) {
+          return '<li>' + esc(w.label) + ' — ' + singles[w.id].count + ' шт. <span class="muted">' +
+            esc(w.note) + '</span></li>';
+        }).join('') + '</ul></section>';
+    }
+
+    var priceRows = r.items.map(function (x) {
       return '<tr><td>' + esc(x.label) + '</td><td class="num">' + money(roundNice(x.value)) + ' ₴</td></tr>';
     }).join('');
     var modRows = r.modList.map(function (m) {
-      return '<tr><td>' + esc(m.label) + '</td><td class="num">+' + Math.round((m.factor - 1) * 100) + '%</td></tr>';
+      return '<tr class="mod"><td>' + esc(m.label) + '</td><td class="num">+' +
+        Math.round((m.factor - 1) * 100) + '%</td></tr>';
     }).join('');
     var discountRow = r.discount
-      ? '<tr><td>Знижка за комплекс</td><td class="num">−' + Math.round(r.discount * 100) + '%</td></tr>' : '';
+      ? '<tr class="mod"><td>Знижка за комплекс</td><td class="num">−' +
+        Math.round(r.discount * 100) + '%</td></tr>' : '';
 
-    return '<!doctype html><html lang="uk"><head><meta charset="utf-8"><title>Комерційна пропозиція</title><style>' +
-      'body{font:14px/1.6 -apple-system,BlinkMacSystemFont,sans-serif;color:#121214;max-width:720px;margin:40px auto;padding:0 20px}' +
-      'h1{font-size:26px;letter-spacing:-.02em;margin:0 0 4px}' +
-      '.sub{color:#8b8d95;font-size:13px;margin-bottom:28px}' +
-      'table{border-collapse:collapse;width:100%;margin-bottom:8px}' +
-      'td{padding:11px 0;border-bottom:1px solid #e6e6e9}' +
+    var stages = P.STAGES.map(function (st, i) {
+      return '<li><b>' + esc(st.title) + '</b><span>' + esc(st.text) + '</span></li>';
+    }).join('');
+
+    var listOf = function (items) {
+      return '<ul class="plain">' + items.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>';
+    };
+
+    var main = roundNice(r.total);
+
+    return '<!doctype html><html lang="uk"><head><meta charset="utf-8">' +
+      '<meta name="viewport" content="width=device-width, initial-scale=1">' +
+      '<title>Комерційна пропозиція</title><style>' +
+      '*{box-sizing:border-box}' +
+      'body{font:15px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;' +
+      'color:#121214;margin:0;background:#f6f6f7}' +
+      '.page{max-width:760px;margin:0 auto;background:#fff;padding:56px 56px 48px}' +
+      '.head{border-bottom:2px solid #121214;padding-bottom:22px;margin-bottom:34px}' +
+      'h1{font-size:30px;letter-spacing:-.025em;margin:0 0 6px;font-weight:680}' +
+      '.meta{color:#8b8d95;font-size:13px}' +
+      '.meta b{color:#121214;font-weight:550}' +
+      'h2{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:#8b8d95;' +
+      'margin:38px 0 14px;font-weight:650}' +
+      '.lead{font-size:16px;line-height:1.6;color:#36373d;margin:0 0 6px}' +
+      '.scope{margin-bottom:22px}' +
+      '.scope h3{font-size:16px;margin:0 0 8px;font-weight:620}' +
+      '.scope .qty{font-size:12px;color:#8b8d95;font-weight:400;margin-left:6px}' +
+      '.scope ul{margin:0;padding-left:18px}' +
+      '.scope li{margin-bottom:4px;color:#36373d}' +
+      '.muted{color:#8b8d95;font-size:13px}' +
+      'ol.stages{list-style:none;counter-reset:s;margin:0;padding:0}' +
+      'ol.stages li{counter-increment:s;position:relative;padding-left:40px;margin-bottom:16px}' +
+      'ol.stages li::before{content:counter(s);position:absolute;left:0;top:1px;width:26px;height:26px;' +
+      'border-radius:99px;background:#121214;color:#fff;font-size:13px;display:flex;' +
+      'align-items:center;justify-content:center;font-weight:600}' +
+      'ol.stages b{display:block;font-size:15px;margin-bottom:2px}' +
+      'ol.stages span{color:#55565c;font-size:14px}' +
+      'ul.plain{margin:0;padding-left:18px}' +
+      'ul.plain li{margin-bottom:6px;color:#36373d}' +
+      'table{border-collapse:collapse;width:100%}' +
+      'td{padding:11px 0;border-bottom:1px solid #e6e6e9;font-size:14px}' +
+      'tr.mod td{color:#8b8d95}' +
       '.num{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}' +
-      '.total{margin-top:24px;padding:20px;background:#121214;color:#fff;border-radius:14px}' +
-      '.total .big{font-size:28px;font-weight:650;letter-spacing:-.02em;margin-top:4px}' +
-      '.total .small{opacity:.65;font-size:13px}' +
-      '.note{margin-top:22px;color:#8b8d95;font-size:12px;line-height:1.6}' +
-      '</style></head><body>' +
-      '<h1>Комерційна пропозиція</h1>' +
-      '<div class="sub">Складено ' + esc(date) + ' · рівень виконавця: ' + esc(lvl.title) + '</div>' +
-      '<table>' + rows + modRows + discountRow + '</table>' +
-      '<div class="total"><div class="small">Вартість робіт</div>' +
-      '<div class="big">' + money(roundNice(r.low)) + ' – ' + money(roundNice(r.high)) + ' ₴</div>' +
-      '<div class="small">≈ $' + money(roundNice(r.low) / rate) + ' – $' + money(roundNice(r.high) / rate) +
-      ' · орієнтовний строк: ' + esc(formatDays(r.days)) + '</div></div>' +
-      '<p class="note">Ціни орієнтовні й залежать від остаточного обсягу задачі. ' +
-      'Курс ' + rate.toFixed(2) + ' ₴/$ за даними Національного банку.</p>' +
-      '</body></html>';
+      '.total{margin-top:26px;padding:24px 26px;background:#121214;color:#fff;border-radius:16px}' +
+      '.total .small{opacity:.6;font-size:13px}' +
+      '.total .big{font-size:34px;font-weight:680;letter-spacing:-.025em;margin:4px 0 2px}' +
+      '.total .row{display:flex;gap:34px;flex-wrap:wrap;margin-top:18px;padding-top:16px;' +
+      'border-top:1px solid rgba(255,255,255,.16)}' +
+      '.total .row div span{display:block;opacity:.6;font-size:12px}' +
+      '.total .row div b{font-size:16px;font-weight:620}' +
+      '.foot{margin-top:40px;padding-top:20px;border-top:1px solid #e6e6e9;' +
+      'color:#8b8d95;font-size:12.5px;line-height:1.6}' +
+      '@media print{body{background:#fff}.page{padding:0;max-width:none}}' +
+      '@media (max-width:640px){.page{padding:28px 20px}h1{font-size:24px}.total .big{font-size:27px}}' +
+      '</style></head><body><div class="page">' +
+
+      '<div class="head"><h1>Комерційна пропозиція</h1>' +
+      '<div class="meta">' + esc(date) +
+      (client ? ' · для <b>' + esc(client) + '</b>' : '') +
+      (author ? ' · від <b>' + esc(author) + '</b>' : '') +
+      '</div></div>' +
+
+      '<p class="lead">Нижче — що саме буде зроблено, як іде робота, скільки це коштує ' +
+      'і що потрібно з вашого боку. Якщо щось не підходить, обсяг можна змінити — ' +
+      'вартість перерахується.</p>' +
+
+      '<h2>Що входить</h2>' + scope +
+
+      '<h2>Як іде робота</h2><ol class="stages">' + stages + '</ol>' +
+
+      '<h2>Вартість</h2>' +
+      '<table>' + priceRows + modRows + discountRow + '</table>' +
+      '<div class="total">' +
+      '<div class="small">Разом</div>' +
+      '<div class="big">' + money(main) + ' ₴</div>' +
+      '<div class="small">≈ $' + money(main / rate) + ' за курсом ' + rate.toFixed(2) + ' ₴/$</div>' +
+      '<div class="row">' +
+      '<div><span>Строк</span><b>' + esc(formatDays(r.days)) + '</b></div>' +
+      '<div><span>Передоплата 50%</span><b>' + money(roundNice(main / 2)) + ' ₴</b></div>' +
+      '</div></div>' +
+
+      '<h2>Умови</h2>' + listOf(P.TERMS) +
+      '<h2>Що потрібно від вас</h2>' + listOf(P.CLIENT_NEEDS) +
+
+      '<div class="foot">Пропозиція дійсна 14 днів від дати складання. ' +
+      'Остаточна вартість фіксується після брифу, коли стає зрозумілим точний обсяг.' +
+      (author ? '<br>' + esc(author) : '') +
+      '</div></div></body></html>';
   }
 
   function download(name, text, mime) {
@@ -509,6 +606,12 @@
       renderCalc();
       show('calc');
     };
+    ['author', 'client'].forEach(function (id) {
+      var el = $(id);
+      el.value = localStorage.getItem('calc_' + id) || '';
+      el.addEventListener('input', function () { localStorage.setItem('calc_' + id, el.value); });
+    });
+
     $('share').onclick = copyShareLink;
     $('offer').onclick = function () {
       var html = buildOffer();

@@ -90,7 +90,19 @@ h2{margin:0 0 4px;font-size:19px;letter-spacing:-.015em;font-weight:640}
 .total .money{font-size:38px;font-weight:680;letter-spacing:-.03em;line-height:1.1;margin-top:6px}
 .total .usd{font-size:18px;opacity:.72;margin-top:6px;font-weight:550}
 .total .rate{font-size:12px;opacity:.5;margin-top:14px}
-.totalgrid{display:flex;gap:28px;flex-wrap:wrap;margin-top:18px;padding-top:16px;
+.offerfields{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px}
+.offerfields .textfield{display:flex;align-items:center;gap:10px;background:var(--card);
+  border:1px solid var(--line);border-radius:11px;padding:4px 12px}
+.offerfields .textfield span{font-size:12px;color:var(--ink-3);white-space:nowrap}
+.offerfields .textfield input{flex:1;border:0;background:transparent;padding:9px 0;
+  font-size:14px;outline:none;min-width:0}
+@media (max-width:700px){.offerfields{grid-template-columns:1fr}}
+
+.spread{margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,.15)}
+html[data-theme="dark"] .spread{border-top-color:rgba(0,0,0,.2)}
+.spread b{font-size:16px;font-weight:620;display:block}
+.spread span{display:block;font-size:12px;opacity:.6;line-height:1.5;margin-top:5px;max-width:52ch}
+.totalgrid{display:flex;gap:28px;flex-wrap:wrap;margin-top:16px;padding-top:14px;
   border-top:1px solid rgba(255,255,255,.15)}
 html[data-theme="dark"] .totalgrid{border-top-color:rgba(0,0,0,.2)}
 .totalgrid span{display:block;font-size:12px;opacity:.6}
