@@ -54,9 +54,32 @@
     </div>
 
     <div class="card">
-      <h2>Окремі носії</h2>
-      <p class="sub">Поштучна робота поза брендингом. Що більший тираж однотипних макетів, то дешевша кожна штука.</p>
+      <div class="cardhead">
+        <div>
+          <h2>Окремі носії</h2>
+          <p class="sub">Поштучна робота поза брендингом. Що більший тираж однотипних макетів, то дешевша кожна штука.</p>
+        </div>
+        <div class="cardtools">
+          <button type="button" class="minibtn" id="editPrices">Змінити ціни</button>
+          <button type="button" class="minibtn hidden" id="resetPrices">Повернути типові</button>
+        </div>
+      </div>
       <div id="singles"></div>
+
+      <div class="customblock">
+        <h3>Своя позиція</h3>
+        <p class="sub">Якщо робите щось, чого немає в списку — додайте. Позиція залишиться у вашому браузері.</p>
+        <div class="customgrid">
+          <label class="textfield"><span>Назва</span><input id="customName" type="text" maxlength="60" placeholder="Наприклад: оформлення вітрини"></label>
+          <label class="textfield"><span>Ціна, ₴</span><input id="customPrice" type="number" min="0" step="50" placeholder="за штуку"></label>
+          <label class="textfield"><span>Опис</span><input id="customNote" type="text" maxlength="90" placeholder="необовʼязково"></label>
+          <label class="textfield"><span>Днів</span><input id="customDays" type="number" min="0" step="0.5" placeholder="0,5"></label>
+        </div>
+        <div class="row" style="margin-top:12px">
+          <button type="button" class="btn" id="addCustom">Додати до списку</button>
+          <span class="hint" id="customHint"></span>
+        </div>
+      </div>
     </div>
 
     <div class="card">

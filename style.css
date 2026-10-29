@@ -90,6 +90,25 @@ h2{margin:0 0 4px;font-size:19px;letter-spacing:-.015em;font-weight:640}
 .total .money{font-size:38px;font-weight:680;letter-spacing:-.03em;line-height:1.1;margin-top:6px}
 .total .usd{font-size:18px;opacity:.72;margin-top:6px;font-weight:550}
 .total .rate{font-size:12px;opacity:.5;margin-top:14px}
+.cardhead{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;flex-wrap:wrap}
+.cardtools{display:flex;gap:8px;flex:none}
+.workprice.changed{color:var(--ink);font-weight:600}
+.workprice.changed::after{content:' ·  змінено';font-size:11px;color:var(--ink-3);font-weight:400}
+.priceedit{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--ink-3);flex:none}
+.priceedit input{width:92px;border:1px solid var(--line-2);background:var(--bg);border-radius:9px;
+  padding:7px 9px;font-size:13.5px;text-align:right}
+.priceedit i{font-style:normal;font-size:12px}
+
+.customblock{border-top:1px solid var(--line);margin-top:18px;padding-top:18px}
+.customblock h3{margin:0 0 3px;font-size:15px;font-weight:620}
+.customgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}
+.customgrid .textfield{display:flex;align-items:center;gap:10px;background:var(--card);
+  border:1px solid var(--line);border-radius:11px;padding:4px 12px}
+.customgrid .textfield span{font-size:11px;color:var(--ink-3);white-space:nowrap}
+.customgrid .textfield input{flex:1;border:0;background:transparent;padding:9px 0;
+  font-size:14px;outline:none;min-width:0}
+@media (max-width:760px){.customgrid{grid-template-columns:1fr}}
+
 .offerfields{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px}
 .offerfields .textfield{display:flex;align-items:center;gap:10px;background:var(--card);
   border:1px solid var(--line);border-radius:11px;padding:4px 12px}

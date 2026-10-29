@@ -32,8 +32,25 @@
   P.WORKS.forEach(function (w, i) {
     work[w.id] = { on: i === 0, count: w.defaultCount || 1 };
   });
+  /* Свої ціни поверх типових і власні позиції — усе живе в браузері. */
+  function readStore(key, fallback) {
+    try { var v = JSON.parse(localStorage.getItem(key)); return v == null ? fallback : v; }
+    catch (e) { return fallback; }
+  }
+
+  var priceOverrides = readStore('calc_prices', {});   // id → базова ціна для мідла
+  var customItems = readStore('calc_custom', []);      // власні позиції
+  var editPrices = false;
+
+  function allSingles() { return P.SINGLES.concat(customItems); }
+
+  function basePriceOf(item) {
+    if (Object.prototype.hasOwnProperty.call(priceOverrides, item.id)) return priceOverrides[item.id];
+    return item.base ? P.BASE[item.base] : item.price;
+  }
+
   var singles = {};
-  P.SINGLES.forEach(function (w) {
+  allSingles().forEach(function (w) {
     singles[w.id] = { on: false, count: w.defaultCount || 1 };
   });
   var mods = {};
@@ -114,29 +131,35 @@
     var factor = levelData(level).factor;
     var items = [];
 
+    var basePrice = function (id) {
+      var w = P.WORKS.filter(function (x) { return x.id === id; })[0];
+      return basePriceOf(w);
+    };
+
     if (work.logo.on) {
-      items.push({ label: 'Логотип', value: P.BASE.logo * factor });
+      items.push({ label: 'Логотип', value: basePrice('logo') * factor });
     }
     if (work.identity.on && work.identity.count > 0) {
       items.push({
         label: 'Айдентика, носіїв: ' + work.identity.count,
-        value: P.BASE.identityItem * work.identity.count * factor
+        value: basePrice('identity') * work.identity.count * factor
       });
     }
     if (work.guide.on) {
-      items.push({ label: 'Правила використання', value: P.BASE.guide * factor });
+      items.push({ label: 'Правила використання', value: basePrice('guide') * factor });
     }
     if (work.pages.on && work.pages.count > 0) {
       var pf = P.pageFactor(work.pages.count);
       items.push({
         label: 'Багатосторінкова продукція, шпальт: ' + work.pages.count +
           (pf < 1 ? ' (за обсяг −' + Math.round((1 - pf) * 100) + '%)' : ''),
-        value: P.BASE.page * work.pages.count * pf * factor
+        value: basePrice('pages') * work.pages.count * pf * factor
       });
     }
     if (work.packaging.on && work.packaging.count > 0) {
       var n = work.packaging.count;
-      var sum = P.BASE.sku + (n - 1) * P.BASE.sku * P.EXTRA_SKU_FACTOR;
+      var skuBase = basePrice('packaging');
+      var sum = skuBase + (n - 1) * skuBase * P.EXTRA_SKU_FACTOR;
       items.push({
         label: 'Упаковка, позицій: ' + n +
           (n > 1 ? ' (кожна наступна −' + Math.round((1 - P.EXTRA_SKU_FACTOR) * 100) + '%)' : ''),
@@ -144,14 +167,14 @@
       });
     }
 
-    P.SINGLES.forEach(function (w) {
+    allSingles().forEach(function (w) {
       var st = singles[w.id];
-      if (!st.on || st.count < 1) return;
+      if (!st || !st.on || st.count < 1) return;
       var bf = P.bulkFactor(st.count);
       items.push({
         label: w.label + ' × ' + st.count +
           (bf < 1 ? ' (за тираж −' + Math.round((1 - bf) * 100) + '%)' : ''),
-        value: w.price * st.count * bf * factor
+        value: basePriceOf(w) * st.count * bf * factor
       });
     });
 
@@ -202,9 +225,9 @@
     if (work.pages.on) days += P.DAYS.page * work.pages.count * P.pageFactor(work.pages.count);
     if (work.packaging.on) days += P.DAYS.sku * work.packaging.count;
 
-    P.SINGLES.forEach(function (w) {
+    allSingles().forEach(function (w) {
       var st = singles[w.id];
-      if (st.on && st.count > 0) days += (w.days || 0.5) * st.count * P.bulkFactor(st.count);
+      if (st && st.on && st.count > 0) days += (w.days || 0.5) * st.count * P.bulkFactor(st.count);
     });
 
     days *= speed;
@@ -259,18 +282,27 @@
 
   /* Один и тот же вид строки для комплексных работ и для отдельных носителей. */
   function workRow(r, state, unitPrice, attr) {
-    var price = money(roundNice(unitPrice)) + ' ₴' + (r.per ? ' ' + r.per : '');
+    var changed = Object.prototype.hasOwnProperty.call(priceOverrides, r.id);
+    var priceHtml = editPrices
+      ? '<span class="priceedit"><input type="number" min="0" step="50" value="' +
+        Math.round(unitPrice) + '" data-price="' + r.id + '"> ₴' +
+        (r.per ? ' <i>' + esc(r.per) + '</i>' : '') + '</span>'
+      : '<span class="workprice' + (changed ? ' changed' : '') + '">' +
+        money(roundNice(unitPrice)) + ' ₴' + (r.per ? ' ' + esc(r.per) : '') + '</span>';
+
     var body = r.countLabel
       ? '<div class="workbody' + (state.on ? '' : ' off') + '">' +
         '<label class="num">' + esc(r.countLabel) + ' <input type="number" min="' + (r.min || 1) +
-        '" max="500" value="' + state.count + '" data-' + attr + 'count="' + r.id + '"></label></div>'
+        '" max="500" value="' + state.count + '" data-' + attr + 'count="' + r.id + '"></label>' +
+        (r.custom ? '<button class="minibtn" data-delcustom="' + esc(r.id) + '">Прибрати позицію</button>' : '') +
+        '</div>'
       : '';
     return '<div class="work"><div class="workhead">' +
       '<input type="checkbox" id="' + attr + '-' + r.id + '"' + (state.on ? ' checked' : '') +
       ' data-' + attr + '="' + r.id + '">' +
       '<label for="' + attr + '-' + r.id + '">' + esc(r.label) +
       '<div class="hint">' + esc(r.note) + '</div></label>' +
-      '<span class="workprice">' + esc(price) + '</span></div>' + body + '</div>';
+      priceHtml + '</div>' + body + '</div>';
   }
 
   function bindRows(attr, store, onCount) {
@@ -293,18 +325,71 @@
     var factor = levelData(level).factor;
 
     $('works').innerHTML = P.WORKS.map(function (r) {
-      return workRow(r, work[r.id], P.BASE[r.base] * factor, 'work');
+      return workRow(r, work[r.id], basePriceOf(r) * factor, 'work');
     }).join('');
 
-    $('singles').innerHTML = P.SINGLES.map(function (r) {
+    $('singles').innerHTML = allSingles().map(function (r) {
+      if (!singles[r.id]) singles[r.id] = { on: false, count: r.defaultCount || 1 };
       return workRow({
         id: r.id, label: r.label, note: r.note, countLabel: r.countLabel,
-        min: r.min, per: 'за штуку'
-      }, singles[r.id], r.price * factor, 'single');
+        min: r.min, per: 'за штуку', custom: r.custom
+      }, singles[r.id], basePriceOf(r) * factor, 'single');
     }).join('');
 
     bindRows('work', work);
     bindRows('single', singles);
+    bindPriceEditing();
+  }
+
+  /* Ціну вводять ту, що бачать на екрані, тобто для поточного рівня.
+     Зберігаємо базову: тоді інші рівні перерахуються самі. */
+  function bindPriceEditing() {
+    var factor = levelData(level).factor;
+    Array.prototype.forEach.call(document.querySelectorAll('[data-price]'), function (el) {
+      el.onchange = function () {
+        var shown = Math.max(0, Number(el.value) || 0);
+        priceOverrides[el.dataset.price] = Math.round(shown / factor);
+        localStorage.setItem('calc_prices', JSON.stringify(priceOverrides));
+        renderCalc();
+      };
+    });
+    Array.prototype.forEach.call(document.querySelectorAll('[data-delcustom]'), function (el) {
+      el.onclick = function () {
+        var id = el.dataset.delcustom;
+        customItems = customItems.filter(function (x) { return x.id !== id; });
+        delete singles[id];
+        delete priceOverrides[id];
+        localStorage.setItem('calc_custom', JSON.stringify(customItems));
+        localStorage.setItem('calc_prices', JSON.stringify(priceOverrides));
+        renderCalc();
+      };
+    });
+  }
+
+  function addCustomItem() {
+    var label = $('customName').value.trim();
+    var price = Number($('customPrice').value) || 0;
+    if (!label || price <= 0) {
+      $('customHint').textContent = 'Впишіть назву і ціну більшу за нуль.';
+      return;
+    }
+    var factor = levelData(level).factor;
+    var id = 'custom-' + Date.now().toString(36);
+    customItems.push({
+      id: id, custom: true, label: label,
+      note: $('customNote').value.trim() || 'власна позиція',
+      price: Math.round(price / factor),
+      countLabel: 'штук', defaultCount: 1, min: 1, bulk: true,
+      days: Number($('customDays').value) || 0.5
+    });
+    singles[id] = { on: true, count: 1 };
+    localStorage.setItem('calc_custom', JSON.stringify(customItems));
+    $('customName').value = '';
+    $('customPrice').value = '';
+    $('customNote').value = '';
+    $('customDays').value = '';
+    $('customHint').textContent = 'Додано: ' + label;
+    renderCalc();
   }
 
   function renderMods() {
@@ -369,6 +454,9 @@
   }
 
   function renderCalc() {
+    $('editPrices').textContent = editPrices ? 'Готово' : 'Змінити ціни';
+    $('editPrices').classList.toggle('primary', editPrices);
+    $('resetPrices').classList.toggle('hidden', !Object.keys(priceOverrides).length);
     renderLevelCards();
     renderWorks();
     renderMods();
@@ -390,8 +478,12 @@
     var w = {};
     P.WORKS.forEach(function (x) { if (work[x.id].on) w[x.id] = work[x.id].count; });
     var sg = {};
-    P.SINGLES.forEach(function (x) { if (singles[x.id].on) sg[x.id] = singles[x.id].count; });
+    allSingles().forEach(function (x) { if (singles[x.id] && singles[x.id].on) sg[x.id] = singles[x.id].count; });
+    var usedCustom = customItems.filter(function (x) { return singles[x.id] && singles[x.id].on; })
+      .map(function (x) { return { id: x.id, label: x.label, note: x.note, price: x.price, days: x.days }; });
     var payload = { l: level, w: w, s: sg, m: mods };
+    if (usedCustom.length) payload.c = usedCustom;
+    if (Object.keys(priceOverrides).length) payload.p = priceOverrides;
     return '#' + encodeURIComponent(JSON.stringify(payload));
   }
 
@@ -404,10 +496,23 @@
         work[x.id].on = Object.prototype.hasOwnProperty.call(d.w || {}, x.id);
         if (work[x.id].on) work[x.id].count = Math.max(1, Math.min(500, Number(d.w[x.id]) || 1));
       });
-      P.SINGLES.forEach(function (x) {
+      allSingles().forEach(function (x) {
+        if (!singles[x.id]) singles[x.id] = { on: false, count: x.defaultCount || 1 };
         singles[x.id].on = Object.prototype.hasOwnProperty.call(d.s || {}, x.id);
         if (singles[x.id].on) singles[x.id].count = Math.max(x.min || 1, Math.min(500, Number(d.s[x.id]) || 1));
       });
+      if (Array.isArray(d.c)) {
+        d.c.forEach(function (x) {
+          if (!x || !x.id || customItems.some(function (y) { return y.id === x.id; })) return;
+          customItems.push({
+            id: x.id, custom: true, label: String(x.label || 'Позиція'),
+            note: String(x.note || 'власна позиція'), price: Number(x.price) || 0,
+            countLabel: 'штук', defaultCount: 1, min: 1, bulk: true, days: Number(x.days) || 0.5
+          });
+          singles[x.id] = { on: true, count: Number((d.s || {})[x.id]) || 1 };
+        });
+      }
+      if (d.p && typeof d.p === 'object') priceOverrides = Object.assign({}, d.p);
       if (d.m) Object.keys(mods).forEach(function (k) {
         if (typeof d.m[k] === 'number') mods[k] = d.m[k];
       });
@@ -523,7 +628,7 @@
     /* Назву клієнта не схиляємо — ставимо її заголовком як є. */
     var coverWorks = P.WORKS.filter(function (w) { return work[w.id].on; })
       .map(function (w) { return w.label; })
-      .concat(P.SINGLES.filter(function (w) { return singles[w.id].on; }).length ? ['окремі макети'] : []);
+      .concat(allSingles().filter(function (w) { return singles[w.id] && singles[w.id].on; }).length ? ['окремі макети'] : []);
 
     slides.push('<div class="slide cover">' +
       '<div><div class="kicker">Комерційна пропозиція</div>' +
@@ -548,7 +653,7 @@
         '<ul>' + (w.includes || []).map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul></div>';
     });
 
-    var singlesChosen = P.SINGLES.filter(function (w) { return singles[w.id].on; });
+    var singlesChosen = allSingles().filter(function (w) { return singles[w.id] && singles[w.id].on; });
     if (singlesChosen.length) {
       chosen.push('<div class="card"><h3>Окремі макети</h3><div class="chips">' +
         singlesChosen.map(function (w) {
@@ -704,6 +809,17 @@
       el.value = localStorage.getItem('calc_' + id) || '';
       el.addEventListener('input', function () { localStorage.setItem('calc_' + id, el.value); });
     });
+
+    $('editPrices').onclick = function () {
+      editPrices = !editPrices;
+      renderCalc();
+    };
+    $('resetPrices').onclick = function () {
+      priceOverrides = {};
+      localStorage.removeItem('calc_prices');
+      renderCalc();
+    };
+    $('addCustom').onclick = addCustomItem;
 
     $('share').onclick = copyShareLink;
     $('offer').onclick = openOffer;
