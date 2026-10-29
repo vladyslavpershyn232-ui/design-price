@@ -622,6 +622,17 @@
     '.terms b{font-size:19px;font-weight:650;letter-spacing:-.02em;display:block;margin-top:3px}' +
     '.why{margin-top:16px;font-size:12.5px;color:#55565c;line-height:1.55;' +
     'background:#fafafb;border-radius:12px;padding:13px 15px}' +
+    /* варіант Б: ціна смугою зверху, деталі під нею */
+    '.hero{background:#121214;color:#fff;border-radius:18px;padding:22px 26px;display:flex;' +
+    'align-items:flex-end;justify-content:space-between;gap:28px;flex-wrap:wrap;margin-bottom:22px}' +
+    '.hero .l span{display:block;opacity:.55;font-size:11px;text-transform:uppercase;letter-spacing:.1em}' +
+    '.hero .l b{font-size:44px;font-weight:700;letter-spacing:-.03em;display:block;line-height:1.05;margin-top:4px}' +
+    '.hero .l i{font-style:normal;opacity:.6;font-size:13px;display:block;margin-top:3px}' +
+    '.hero .r{display:flex;gap:30px}' +
+    '.hero .r div span{display:block;opacity:.55;font-size:11px;text-transform:uppercase;letter-spacing:.08em}' +
+    '.hero .r div b{font-size:18px;font-weight:650;margin-top:3px;display:block}' +
+    '.costcols{display:grid;grid-template-columns:1.3fr 1fr;gap:28px;align-items:start}' +
+    '.costb{flex:1;display:flex;flex-direction:column;justify-content:center}' +
     /* умови */
     '.two{display:grid;grid-template-columns:1fr 1fr;gap:34px;flex:1;align-content:start}' +
     '.two ul{margin:0;padding-left:17px}' +
@@ -637,9 +648,10 @@
 
   function slideNum(n) { return '<div class="num">' + n + '</div>'; }
 
-  function buildOffer() {
+  function buildOffer(layout) {
     var r = calculate();
     if (!r.items.length) return null;
+    layout = layout || localStorage.getItem('calc_cost_layout') || 'a';
 
     var date = new Date().toLocaleDateString('uk-UA', { day: 'numeric', month: 'long', year: 'numeric' });
     var author = (localStorage.getItem('calc_author') || '').trim();
@@ -725,18 +737,30 @@
     r.modList.forEach(function (m) { why.push(esc(m.label) + ' — плюс ' + Math.round((m.factor - 1) * 100) + '%.'); });
     if (!why.length) why.push('Ціна без надбавок: звичайні строки, один напрямок, стандартна передача прав.');
 
+    var costBody = layout === 'b'
+      ? '<div class="costb"><div class="hero">' +
+        '<div class="l"><span>Разом</span><b>' + money(main) + ' ₴</b>' +
+        '<i>≈ $' + money(main / rate) + ' за курсом ' + rate.toFixed(2) + ' ₴/$</i></div>' +
+        '<div class="r">' +
+        '<div><span>Строк</span><b>' + esc(formatDays(r.days)) + '</b></div>' +
+        '<div><span>Передоплата 50%</span><b>' + money(roundNice(main / 2)) + ' ₴</b></div>' +
+        '</div></div>' +
+        '<div class="costcols"><table>' + priceRows + modRows + discountRow + '</table>' +
+        '<div class="why" style="margin:0">' + why.join(' ') + '</div></div></div>'
+      : '<div class="costwrap"><div><table>' + priceRows + modRows + discountRow + '</table>' +
+        '<div class="why">' + why.join(' ') + '</div></div>' +
+        '<div class="costright">' +
+        '<div class="price"><div class="small">Разом</div>' +
+        '<div class="big">' + money(main) + ' ₴</div>' +
+        '<div class="usd">≈ $' + money(main / rate) + ' за курсом ' + rate.toFixed(2) + ' ₴/$</div></div>' +
+        '<div class="terms">' +
+        '<div><span>Строк</span><b>' + esc(formatDays(r.days)) + '</b></div>' +
+        '<div><span>Передоплата 50%</span><b>' + money(roundNice(main / 2)) + ' ₴</b></div>' +
+        '</div></div></div>';
+
     slides.push('<div class="slide">' +
       '<div class="kicker">Гроші</div><h2>Вартість і з чого вона складається</h2>' +
-      '<div class="costwrap"><div><table>' + priceRows + modRows + discountRow + '</table>' +
-      '<div class="why">' + why.join(' ') + '</div></div>' +
-      '<div class="costright">' +
-      '<div class="price"><div class="small">Разом</div>' +
-      '<div class="big">' + money(main) + ' ₴</div>' +
-      '<div class="usd">≈ $' + money(main / rate) + ' за курсом ' + rate.toFixed(2) + ' ₴/$</div></div>' +
-      '<div class="terms">' +
-      '<div><span>Строк</span><b>' + esc(formatDays(r.days)) + '</b></div>' +
-      '<div><span>Передоплата 50%</span><b>' + money(roundNice(main / 2)) + ' ₴</b></div>' +
-      '</div></div></div>' + slideNum(n) + '</div>');
+      costBody + slideNum(n) + '</div>');
 
     /* 5. Умови */
     n++;
@@ -848,6 +872,20 @@
       renderCalc();
     };
     $('addCustom').onclick = addCustomItem;
+
+    var layoutBtn = $('costLayout');
+    var paintLayout = function () {
+      var v = localStorage.getItem('calc_cost_layout') || 'a';
+      layoutBtn.textContent = v === 'b'
+        ? 'Сторінка вартості: ціна зверху'
+        : 'Сторінка вартості: ціна збоку';
+    };
+    layoutBtn.onclick = function () {
+      var v = (localStorage.getItem('calc_cost_layout') || 'a') === 'a' ? 'b' : 'a';
+      localStorage.setItem('calc_cost_layout', v);
+      paintLayout();
+    };
+    paintLayout();
     // Enter у будь-якому полі додає позицію — так швидше, ніж тягтися до кнопки
     ['customName', 'customPrice', 'customNote', 'customDays'].forEach(function (id) {
       $(id).addEventListener('keydown', function (e) {
@@ -881,7 +919,7 @@
     window.__calc = {
       state: function () { return { level: level, levelFromQuiz: levelFromQuiz, work: work, mods: mods }; },
       result: function () { return level ? calculate() : null; },
-    offer: function () { return buildOffer(); },
+    offer: function (layout) { return buildOffer(layout); },
       answer: function (i, k) { answers[i] = k; renderQuiz(); },
       go: show
     };
