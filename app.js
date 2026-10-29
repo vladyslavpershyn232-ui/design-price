@@ -651,7 +651,7 @@
   function buildOffer(layout) {
     var r = calculate();
     if (!r.items.length) return null;
-    layout = layout || localStorage.getItem('calc_cost_layout') || 'c';
+    layout = layout || localStorage.getItem('calc_cost_layout') || 'a';
 
     var date = new Date().toLocaleDateString('uk-UA', { day: 'numeric', month: 'long', year: 'numeric' });
     var author = (localStorage.getItem('calc_author') || '').trim();
@@ -902,17 +902,17 @@
 
     var layoutBtn = $('costLayout');
     var LAYOUTS = [
+      { id: 'a', title: 'ціна збоку' },
       { id: 'c', title: 'ціна знизу' },
-      { id: 'b', title: 'ціна зверху' },
-      { id: 'a', title: 'ціна збоку' }
+      { id: 'b', title: 'ціна зверху' }
     ];
     var paintLayout = function () {
-      var v = localStorage.getItem('calc_cost_layout') || 'c';
+      var v = localStorage.getItem('calc_cost_layout') || 'a';
       var cur = LAYOUTS.filter(function (x) { return x.id === v; })[0] || LAYOUTS[0];
       layoutBtn.textContent = 'Сторінка вартості: ' + cur.title;
     };
     layoutBtn.onclick = function () {
-      var v = localStorage.getItem('calc_cost_layout') || 'c';
+      var v = localStorage.getItem('calc_cost_layout') || 'a';
       var i = LAYOUTS.findIndex(function (x) { return x.id === v; });
       var next = LAYOUTS[(i + 1) % LAYOUTS.length];
       localStorage.setItem('calc_cost_layout', next.id);
