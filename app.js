@@ -605,28 +605,30 @@
     '.stage .n{font-size:34px;font-weight:700;letter-spacing:-.03em;line-height:1;margin-bottom:8px}' +
     '.stage p{margin:0;font-size:13.5px;line-height:1.5;color:#55565c}' +
     /* вартість */
-    '.costwrap{display:grid;grid-template-columns:1.25fr 1fr;gap:26px;flex:1}' +
+    '.costwrap{display:grid;grid-template-columns:1.2fr 1fr;gap:28px;flex:1;align-items:start;' +
+    'align-content:center}' +
+    '.costright{display:flex;flex-direction:column;gap:18px}' +
     'table{border-collapse:collapse;width:100%}' +
     'td{padding:9px 0;border-bottom:1px solid #ececef;font-size:14px}' +
     'tr.mod td{color:#8b8d95;font-size:13px}' +
     '.n2{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}' +
-    '.price{background:#121214;color:#fff;border-radius:18px;padding:26px;display:flex;' +
-    'flex-direction:column;justify-content:center}' +
+    '.price{background:#121214;color:#fff;border-radius:18px;padding:24px 26px}' +
     '.price .small{opacity:.55;font-size:12px;text-transform:uppercase;letter-spacing:.1em}' +
     '.price .big{font-size:46px;font-weight:700;letter-spacing:-.03em;margin:6px 0 2px;line-height:1}' +
     '.price .usd{opacity:.6;font-size:14px}' +
-    '.price .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:22px;' +
-    'padding-top:18px;border-top:1px solid rgba(255,255,255,.18)}' +
-    '.price .grid span{display:block;opacity:.55;font-size:11px;text-transform:uppercase;letter-spacing:.08em}' +
-    '.price .grid b{font-size:18px;font-weight:650}' +
-    '.why{margin-top:14px;font-size:12.5px;color:#55565c;line-height:1.55}' +
+    '.terms{display:grid;grid-template-columns:1fr 1fr;gap:14px}' +
+    '.terms div{border-top:2px solid #121214;padding-top:11px}' +
+    '.terms span{display:block;font-size:10.5px;text-transform:uppercase;letter-spacing:.1em;color:#8b8d95}' +
+    '.terms b{font-size:19px;font-weight:650;letter-spacing:-.02em;display:block;margin-top:3px}' +
+    '.why{margin-top:16px;font-size:12.5px;color:#55565c;line-height:1.55;' +
+    'background:#fafafb;border-radius:12px;padding:13px 15px}' +
     /* умови */
     '.two{display:grid;grid-template-columns:1fr 1fr;gap:34px;flex:1;align-content:start}' +
     '.two ul{margin:0;padding-left:17px}' +
     '.two li{font-size:14px;line-height:1.55;color:#36373d;margin-bottom:9px}' +
     /* фінал */
     '.final{background:#121214;color:#fff;justify-content:center;align-items:flex-start}' +
-    '.final h2{font-size:38px;max-width:22ch}' +
+    '.final h2{font-size:38px;max-width:20ch;text-wrap:balance}' +
     '.final .kicker{color:rgba(255,255,255,.55)}' +
     '.brief{display:inline-block;margin-top:22px;background:#fff;color:#121214;border-radius:12px;' +
     'padding:15px 22px;font-size:16px;font-weight:600;text-decoration:none;word-break:break-all;max-width:80%}' +
@@ -727,12 +729,14 @@
       '<div class="kicker">Гроші</div><h2>Вартість і з чого вона складається</h2>' +
       '<div class="costwrap"><div><table>' + priceRows + modRows + discountRow + '</table>' +
       '<div class="why">' + why.join(' ') + '</div></div>' +
+      '<div class="costright">' +
       '<div class="price"><div class="small">Разом</div>' +
       '<div class="big">' + money(main) + ' ₴</div>' +
-      '<div class="usd">≈ $' + money(main / rate) + ' за курсом ' + rate.toFixed(2) + ' ₴/$</div>' +
-      '<div class="grid"><div><span>Строк</span><b>' + esc(formatDays(r.days)) + '</b></div>' +
-      '<div><span>Передоплата 50%</span><b>' + money(roundNice(main / 2)) + ' ₴</b></div></div>' +
-      '</div></div>' + slideNum(n) + '</div>');
+      '<div class="usd">≈ $' + money(main / rate) + ' за курсом ' + rate.toFixed(2) + ' ₴/$</div></div>' +
+      '<div class="terms">' +
+      '<div><span>Строк</span><b>' + esc(formatDays(r.days)) + '</b></div>' +
+      '<div><span>Передоплата 50%</span><b>' + money(roundNice(main / 2)) + ' ₴</b></div>' +
+      '</div></div></div>' + slideNum(n) + '</div>');
 
     /* 5. Умови */
     n++;
@@ -749,7 +753,7 @@
     n++;
     slides.push('<div class="slide final">' +
       '<div class="kicker">Наступний крок</div>' +
-      '<h2>' + (brief ? 'Заповніть бриф — і починаємо' : 'Напишіть мені, і почнемо з брифу') + '</h2>' +
+      '<h2>' + (brief ? 'Заповніть бриф — і починаємо' : 'Напишіть мені — почнемо з\u00a0брифу') + '</h2>' +
       (brief ? '<a class="brief" href="' + esc(brief) + '">' + esc(brief) + '</a>' : '') +
       '<div class="contacts">' + (author ? esc(author) + '<br>' : '') +
       'Пропозиція дійсна 14 днів від ' + esc(date) + '</div>' +
