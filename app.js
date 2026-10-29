@@ -370,13 +370,29 @@
     });
   }
 
+  /* Люди пишуть ціну як завгодно: «4 500», «4500 грн», «4,5 тис» не беремо,
+     але пробіли, коми й знак гривні прибираємо самі. */
+  function parsePrice(text) {
+    var clean = String(text || '').replace(/[\s\u00a0']/g, '').replace(',', '.').replace(/[^\d.]/g, '');
+    var n = parseFloat(clean);
+    return isFinite(n) ? n : 0;
+  }
+
   function addCustomItem() {
     var label = $('customName').value.trim();
-    var price = Number($('customPrice').value) || 0;
+    var price = parsePrice($('customPrice').value);
+
+    $('customName').classList.toggle('bad', !label);
+    $('customPrice').classList.toggle('bad', price <= 0);
+
     if (!label || price <= 0) {
-      $('customHint').textContent = 'Впишіть назву і ціну більшу за нуль.';
+      $('customHint').textContent = !label
+        ? 'Впишіть назву позиції.'
+        : 'Впишіть ціну — число більше за нуль.';
+      $('customHint').classList.add('bad');
       return;
     }
+    $('customHint').classList.remove('bad');
     var factor = levelData(level).factor;
     var id = 'custom-' + Date.now().toString(36);
     customItems.push({
@@ -384,7 +400,7 @@
       note: $('customNote').value.trim() || 'власна позиція',
       price: Math.round(price / factor),
       countLabel: 'штук', defaultCount: 1, min: 1, bulk: true,
-      days: Number($('customDays').value) || 0.5
+      days: parsePrice($('customDays').value) || 0.5
     });
     singles[id] = { on: true, count: 1 };
     localStorage.setItem('calc_custom', JSON.stringify(customItems));
@@ -392,7 +408,7 @@
     $('customPrice').value = '';
     $('customNote').value = '';
     $('customDays').value = '';
-    $('customHint').textContent = 'Додано: ' + label;
+    $('customHint').textContent = 'Додано: ' + label + '. Позиція вже у списку, з галочкою.';
     renderCalc();
   }
 
@@ -827,6 +843,16 @@
       renderCalc();
     };
     $('addCustom').onclick = addCustomItem;
+    // Enter у будь-якому полі додає позицію — так швидше, ніж тягтися до кнопки
+    ['customName', 'customPrice', 'customNote', 'customDays'].forEach(function (id) {
+      $(id).addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') { e.preventDefault(); addCustomItem(); }
+      });
+      $(id).addEventListener('input', function () {
+        $(id).classList.remove('bad');
+        $('customHint').classList.remove('bad');
+      });
+    });
 
     $('share').onclick = copyShareLink;
     $('offer').onclick = openOffer;

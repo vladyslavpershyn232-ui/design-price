@@ -6,7 +6,7 @@
 <title>Скільки коштує дизайн</title>
 <meta name="description" content="Опитувальник на рівень і розрахунок вартості дизайну за українським фриланс-ринком.">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='85'>₴</text></svg>">
-<link rel="stylesheet" href="style.css?v=7">
+<link rel="stylesheet" href="style.css?v=8">
 </head>
 <body>
 
@@ -76,9 +76,9 @@
         <p class="sub">Якщо робите щось, чого немає в списку — додайте. Позиція залишиться у вашому браузері.</p>
         <div class="customgrid">
           <label class="textfield"><span>Назва</span><input id="customName" type="text" maxlength="60" placeholder="Наприклад: оформлення вітрини"></label>
-          <label class="textfield"><span>Ціна, ₴</span><input id="customPrice" type="number" min="0" step="50" placeholder="за штуку"></label>
+          <label class="textfield"><span>Ціна, ₴</span><input id="customPrice" type="text" inputmode="decimal" placeholder="за штуку"></label>
           <label class="textfield"><span>Опис</span><input id="customNote" type="text" maxlength="90" placeholder="необовʼязково"></label>
-          <label class="textfield"><span>Днів</span><input id="customDays" type="number" min="0" step="0.5" placeholder="0,5"></label>
+          <label class="textfield"><span>Днів</span><input id="customDays" type="text" inputmode="decimal" placeholder="0,5"></label>
         </div>
         <div class="row" style="margin-top:12px">
           <button type="button" class="btn" id="addCustom">Додати до списку</button>
@@ -119,7 +119,7 @@
   <footer>Розрахунок відбувається у вашому браузері, відповіді нікуди не надсилаються. Курс валют — Національний банк України.</footer>
 </div>
 
-<script src="data.js?v=7"></script>
-<script src="app.js?v=7"></script>
+<script src="data.js?v=8"></script>
+<script src="app.js?v=8"></script>
 </body>
 </html>

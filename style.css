@@ -102,6 +102,11 @@ h2{margin:0 0 4px;font-size:19px;letter-spacing:-.015em;font-weight:640}
 .priceedit i{font-style:normal;font-size:12px}
 
 .customblock{border-top:1px solid var(--line);margin-top:18px;padding-top:18px}
+.customgrid input.bad{color:var(--bad,#9c2f2f)}
+.customgrid .textfield:has(input.bad){border-color:#e5a2a0;background:#fdecec}
+html[data-theme="dark"] .customgrid .textfield:has(input.bad){background:#331a1a;border-color:#6b3230}
+.hint.bad{color:#9c2f2f;font-weight:550}
+html[data-theme="dark"] .hint.bad{color:#eb8b8b}
 .customblock h3{margin:0 0 3px;font-size:15px;font-weight:620}
 .customgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}
 .customgrid .textfield{display:flex;align-items:center;gap:10px;background:var(--card);
